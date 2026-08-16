@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Svenska Flashcards</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle categories" aria-expanded="false">☰ Categories</button>
+
+    <nav class="sidebar" id="sidebar">
+      <h1>🇸🇪 Svenska</h1>
+      <ul class="category-list" id="categoryList"></ul>
+    </nav>
+
+    <main class="app-main">
+      <div class="view-tabs" role="tablist">
+        <button class="tab-btn active" id="tabFlashcards" type="button" role="tab" aria-selected="true">🃏 Flashcards</button>
+        <button class="tab-btn" id="tabWordList" type="button" role="tab" aria-selected="false">📋 Word List</button>
+      </div>
+
+      <section class="view-panel" id="flashcardsPanel">
+        <div class="progress" id="progress"></div>
+
+        <div class="card-stage">
+          <button class="nav-btn" id="prevBtn" aria-label="Previous card">‹</button>
+
+          <div class="card" id="card" tabindex="0" role="button" aria-label="Flip card">
+            <div class="card-inner" id="cardInner">
+              <div class="card-face card-front">
+                <span class="lang-tag">SV</span>
+                <p id="frontText"></p>
+                <p class="translation" id="frontTranslation"></p>
+              </div>
+              <div class="card-face card-back">
+                <span class="lang-tag">EN</span>
+                <p id="backText"></p>
+              </div>
+            </div>
+          </div>
+
+          <button class="nav-btn" id="nextBtn" aria-label="Next card">›</button>
+        </div>
+
+        <p class="hint">Click / tap the card, or press Space, to flip it</p>
+
+        <div class="controls">
+          <button id="shuffleBtn">🔀 Shuffle</button>
+          <button id="resetBtn">↺ Restart</button>
+        </div>
+      </section>
+
+      <section class="view-panel" id="wordListPanel" hidden>
+        <div id="wordListContent"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
