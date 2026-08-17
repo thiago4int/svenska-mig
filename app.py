@@ -102,7 +102,15 @@ def browse_tab():
                 for e in groups[fn_key]:
                     render_entry(e)
     else:
+        # Entries arrive sorted by tab, category, sv — print a heading
+        # whenever either changes so categories stay visibly grouped,
+        # the way the old word-list view did.
+        current_tab, current_category = None, None
         for e in entries:
+            if e["tab"] != current_tab or e["category"] != current_category:
+                heading = e["category"] if tab_choice != "All tabs" else f"{e['tab']} · {e['category']}"
+                st.subheader(heading)
+                current_tab, current_category = e["tab"], e["category"]
             render_entry(e)
 
 
