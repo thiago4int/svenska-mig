@@ -17,7 +17,7 @@ against yourself.
 
 ```
 .
-├── app.py               # Streamlit UI: Browse / Improv Weave / Reverse Drill / Add Entry tabs
+├── streamlit_app.py     # Streamlit UI: Browse / Improv Weave / Reverse Drill / Add Entry tabs
 ├── db.py                # SQLite connection, schema, query helpers
 ├── seed.py              # One-time seed: migrates words/svenska.csv + hand-written content
 ├── requirements.txt     # Python dependencies (Streamlit)
@@ -47,7 +47,7 @@ Everything lives in one `entries` table (see `db.py`):
 | `is_custom` | `1` for entries you added yourself, `0` for seed data                 |
 | `mistake_count` | Times you've flagged this entry as "got it wrong" via Add Entry (0 by default; shown as a ⚠️ badge when > 0) |
 
-On first run, `app.py` calls `seed.seed_database()` if the `entries` table is
+On first run, `streamlit_app.py` calls `seed.seed_database()` if the `entries` table is
 empty. It migrates `words/svenska.csv` into the new tab/category structure
 and adds hand-written content (V2 anchors, Workplace & Tech vocab, Tutor
 Toolkit phrases) that has no analog in the original CSV. Subsequent runs skip
@@ -83,7 +83,7 @@ Requires Python 3.9+ (a recent 3.x is recommended; developed against 3.12).
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-streamlit run app.py
+streamlit run streamlit_app.py
 ```
 
 Open **http://localhost:8501**.
@@ -141,7 +141,7 @@ delete the database file, then start again:
 
 ```bash
 rm words/svenska.db
-docker compose up -d --build   # or: streamlit run app.py
+docker compose up -d --build   # or: streamlit run streamlit_app.py
 ```
 
 This re-migrates `words/svenska.csv` and re-inserts the hand-written content
