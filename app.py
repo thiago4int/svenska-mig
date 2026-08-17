@@ -56,7 +56,14 @@ def browse_tab():
         placeholder="Search Swedish, English, category, notes, examples…",
     )
 
-    tab_choice = st.selectbox("Tab", ["All tabs"] + TABS)
+    tab_choice = st.selectbox("Tab", ["All tabs"] + TABS, key="tab_choice")
+
+    # Landing on the Grammar & V2 Anchors tab defaults the toggle on, since
+    # that tab otherwise mixes the anchors in with plain grammar vocab. Stays
+    # manually overridable until the tab is changed again.
+    if st.session_state.get("_last_tab") != tab_choice:
+        st.session_state["anchors_only"] = tab_choice == "Grammar & V2 Anchors"
+        st.session_state["_last_tab"] = tab_choice
 
     col1, col2 = st.columns(2)
     with col1:
@@ -68,7 +75,7 @@ def browse_tab():
             "Part of speech", distinct_values(conn, "pos", tab=tab_choice)
         )
 
-    only_anchors = st.toggle("V2 Inversion anchors only", value=False)
+    only_anchors = st.toggle("V2 Inversion anchors only", key="anchors_only")
 
     entries = fetch_entries(
         conn,
