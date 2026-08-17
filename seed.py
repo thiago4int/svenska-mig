@@ -58,6 +58,36 @@ V2_ANCHORS = [
     ("Tyvärr", "Modal adverb", "Unfortunately", "modal", "Tyvärr kan jag inte komma.", None),
 ]
 
+# Hand-written Workplace & Tech content: the old CSV barely touched this
+# domain (just five professions + one stray verb), so these are fresh.
+WORKPLACE_TECH_EXTRA = [
+    # (category, sv, pos, en, note, ex)
+    ("Workplace Basics", "Jobb", "Noun (ett)", "Job / work",
+     "Definite: jobbet • Plural: jobb • Def. plural: jobben", "Jag har ett nytt jobb."),
+    ("Workplace Basics", "Möte", "Noun (ett)", "Meeting",
+     "Definite: mötet • Plural: möten • Def. plural: mötena", "Vi har ett möte klockan tio."),
+    ("Workplace Basics", "Kollega", "Noun (en)", "Colleague",
+     "Definite: kollegan • Plural: kollegor • Def. plural: kollegorna", "Min kollega heter Anna."),
+    ("Workplace Basics", "Chef", "Noun (en)", "Boss / manager",
+     "Definite: chefen • Plural: chefer • Def. plural: cheferna", "Chefen är på semester."),
+    ("Workplace Basics", "Tidsfrist", "Noun (en)", "Deadline",
+     "Definite: tidsfristen • Plural: tidsfrister • Def. plural: tidsfristerna", "Vi har en tidsfrist imorgon."),
+    ("Workplace Basics", "Distansarbete", "Noun (ett)", "Remote work",
+     "Definite: distansarbetet (uncountable)", "Jag jobbar med distansarbete idag."),
+    ("Tech & Devices", "Dator", "Noun (en)", "Computer",
+     "Definite: datorn • Plural: datorer • Def. plural: datorerna", "Min dator är trasig."),
+    ("Tech & Devices", "Skärm", "Noun (en)", "Screen / monitor",
+     "Definite: skärmen • Plural: skärmar • Def. plural: skärmarna", "Skärmen är för liten."),
+    ("Tech & Devices", "Fil", "Noun (en)", "File",
+     "Definite: filen • Plural: filer • Def. plural: filerna", "Kan du skicka filen?"),
+    ("Tech & Devices", "Lösenord", "Noun (ett)", "Password",
+     "Definite: lösenordet • Plural: lösenord • Def. plural: lösenorden", "Jag glömde mitt lösenord."),
+    ("Tech & Devices", "Uppdatera", "Verb", "To update",
+     "Infinitive: uppdatera • Past: uppdaterade • Supine: uppdaterat", "Jag måste uppdatera programmet."),
+    ("Tech & Devices", "Programmera", "Verb", "To program",
+     "Infinitive: programmera • Past: programmerade • Supine: programmerat", "Han programmerar varje dag."),
+]
+
 
 def _split_note(forms):
     forms = (forms or "").strip()
@@ -99,3 +129,6 @@ def seed_database(conn):
             fn,
             is_custom=0,
         )
+
+    for category, sv, pos, en, note, ex in WORKPLACE_TECH_EXTRA:
+        insert_entry(conn, "Workplace & Tech", category, sv, pos, en, note, ex, None, is_custom=0)
