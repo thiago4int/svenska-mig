@@ -14,9 +14,17 @@ CREATE TABLE IF NOT EXISTS entries (
     note TEXT,
     ex TEXT,
     fn TEXT,
-    is_custom INTEGER NOT NULL DEFAULT 0
+    is_custom INTEGER NOT NULL DEFAULT 0,
+    mistake_count INTEGER NOT NULL DEFAULT 0
 );
 """
+
+
+def _migrate(conn):
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(entries)")}
+    if "mistake_count" not in columns:
+        conn.execute("ALTER TABLE entries ADD COLUMN mistake_count INTEGER NOT NULL DEFAULT 0")
+    conn.commit()
 
 
 def get_connection():
@@ -24,6 +32,7 @@ def get_connection():
     conn.row_factory = sqlite3.Row
     conn.execute(SCHEMA)
     conn.commit()
+    _migrate(conn)
     return conn
 
 
@@ -31,11 +40,11 @@ def is_empty(conn):
     return conn.execute("SELECT COUNT(*) FROM entries").fetchone()[0] == 0
 
 
-def insert_entry(conn, tab, category, sv, pos, en, note, ex, fn, is_custom=0):
+def insert_entry(conn, tab, category, sv, pos, en, note, ex, fn, is_custom=0, mistake_count=0):
     conn.execute(
-        """INSERT INTO entries (tab, category, sv, pos, en, note, ex, fn, is_custom)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (tab, category, sv, pos, en, note, ex, fn, int(is_custom)),
+        """INSERT INTO entries (tab, category, sv, pos, en, note, ex, fn, is_custom, mistake_count)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (tab, category, sv, pos, en, note, ex, fn, int(is_custom), int(mistake_count)),
     )
     conn.commit()
 

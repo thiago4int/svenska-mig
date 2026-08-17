@@ -5,7 +5,7 @@ import streamlit as st
 from db import distinct_values, fetch_entries, get_connection, insert_entry, is_empty
 from seed import seed_database
 
-TABS = ["Workplace & Tech", "Social & Small Talk", "Home & Daily Life", "Grammar & V2 Anchors"]
+TABS = ["Workplace & Tech", "Social & Small Talk", "Home & Daily Life", "Grammar & V2 Anchors", "Tutor Toolkit"]
 
 FN_LABELS = {
     "position-1": "Position-1 anchors (fronted time/place adverbials)",
@@ -48,6 +48,10 @@ def render_entry(entry):
 
         if entry["ex"]:
             st.code(entry["ex"], language=None)
+
+        if entry["mistake_count"]:
+            times = "time" if entry["mistake_count"] == 1 else "times"
+            st.caption(f"⚠️ Missed {entry['mistake_count']} {times}")
 
 
 def browse_tab():
@@ -144,8 +148,61 @@ def improv_weave_tab():
         render_entry(e)
 
 
+def reverse_drill_tab():
+    st.write(
+        "English shown first — say the Swedish aloud, then reveal to check "
+        "yourself. Active recall beats passive browsing."
+    )
+
+    tab_choice = st.selectbox("Tab", ["All tabs"] + TABS, key="reverse_tab")
+    category_choice = st.multiselect(
+        "Category", distinct_values(conn, "category", tab=tab_choice), key="reverse_category"
+    )
+
+    pool = fetch_entries(conn, tab=tab_choice, categories=category_choice or None)
+    if not pool:
+        st.info("No entries match these filters.")
+        return
+
+    pool_ids = {e["id"] for e in pool}
+    if st.session_state.get("reverse_entry_id") not in pool_ids:
+        st.session_state.reverse_entry_id = random.choice(pool)["id"]
+        st.session_state.reverse_revealed = False
+
+    current = next(e for e in pool if e["id"] == st.session_state.reverse_entry_id)
+
+    with st.container(border=True):
+        st.markdown(f"### {current['en']}")
+        if current["pos"]:
+            st.caption(current["pos"])
+
+        if not st.session_state.reverse_revealed:
+            if st.button("👁️ Reveal"):
+                st.session_state.reverse_revealed = True
+                st.rerun()
+        else:
+            title = f"**{current['sv']}**"
+            if current["is_custom"]:
+                title += " 🆕"
+            st.markdown(title)
+            if current["note"]:
+                st.caption(f"Forms: {current['note']}")
+            if current["ex"]:
+                st.code(current["ex"], language=None)
+
+    if st.button("Next card ➡️"):
+        remaining = pool_ids - {current["id"]} or pool_ids
+        st.session_state.reverse_entry_id = random.choice(list(remaining))
+        st.session_state.reverse_revealed = False
+        st.rerun()
+
+
 def add_entry_tab():
-    st.write("Add your own entry. It's tagged 🆕 so it stays distinguishable from the seed set.")
+    st.write(
+        "Add your own entry — during or right after a tutor session works "
+        "well, while the correction is still fresh. It's tagged 🆕 so it "
+        "stays distinguishable from the seed set."
+    )
 
     with st.form("add_entry_form", clear_on_submit=True):
         tab = st.selectbox("Tab", TABS)
@@ -159,6 +216,7 @@ def add_entry_tab():
             "V2 function group (only relevant for Grammar & V2 Anchors)",
             ["", "position-1", "contrast", "subordinating", "modal"],
         )
+        got_wrong = st.checkbox("I got this wrong (mark for review)")
         submitted = st.form_submit_button("Add entry")
 
         if submitted:
@@ -166,7 +224,17 @@ def add_entry_tab():
                 st.error("Swedish, English, and Category are required.")
             else:
                 insert_entry(
-                    conn, tab, category, sv, pos or None, en, note or None, ex or None, fn or None, is_custom=1
+                    conn,
+                    tab,
+                    category,
+                    sv,
+                    pos or None,
+                    en,
+                    note or None,
+                    ex or None,
+                    fn or None,
+                    is_custom=1,
+                    mistake_count=1 if got_wrong else 0,
                 )
                 st.cache_data.clear()
                 st.success(f"Added “{sv}” → “{en}”.")
@@ -175,10 +243,12 @@ def add_entry_tab():
 
 st.title("🇸🇪 Svenska")
 
-browse, weave, add = st.tabs(["Browse", "Improv Weave", "Add Entry"])
+browse, weave, reverse, add = st.tabs(["Browse", "Improv Weave", "Reverse Drill", "Add Entry"])
 with browse:
     browse_tab()
 with weave:
     improv_weave_tab()
+with reverse:
+    reverse_drill_tab()
 with add:
     add_entry_tab()

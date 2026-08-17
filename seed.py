@@ -88,6 +88,26 @@ WORKPLACE_TECH_EXTRA = [
      "Infinitive: programmera • Past: programmerade • Supine: programmerat", "Han programmerar varje dag."),
 ]
 
+# Hand-written Tutor Toolkit: conversation-management phrases for keeping a
+# tutoring session in Swedish even when you need help. New tab, no analog in
+# the original CSV.
+TUTOR_TOOLKIT = [
+    # (category, sv, pos, en)
+    ("Clarification", "Kan du upprepa?", "Phrase", "Can you repeat?"),
+    ("Clarification", "Vad betyder det?", "Phrase", "What does that mean?"),
+    ("Clarification", "Kan du säga det långsammare?", "Phrase", "Can you say it slower?"),
+    ("Clarification", "Jag hängde inte med.", "Phrase", "I didn't catch that."),
+    ("Repair & Save the Conversation", "Jag menar …", "Phrase", "I mean … (self-correcting)"),
+    ("Repair & Save the Conversation", "Jag har glömt ordet.", "Phrase", "I've forgotten the word."),
+    ("Repair & Save the Conversation", "Får jag tänka lite?", "Phrase", "Can I think a bit?"),
+    ("Repair & Save the Conversation", "Jag försöker igen.", "Phrase", "I'll try again."),
+    ("Meta-language", "Hur säger man det på svenska?", "Phrase", "How do you say that in Swedish?"),
+    ("Meta-language", "Hur stavas det?", "Phrase", "How is it spelled?"),
+    ("Meta-language", "Kan du ge ett exempel?", "Phrase", "Can you give an example?"),
+    ("Polite Feedback", "Det här är svårt för mig.", "Phrase", "This is difficult for me."),
+    ("Polite Feedback", "Jag förstår inte riktigt.", "Phrase", "I don't quite understand."),
+]
+
 
 def _split_note(forms):
     forms = (forms or "").strip()
@@ -132,3 +152,6 @@ def seed_database(conn):
 
     for category, sv, pos, en, note, ex in WORKPLACE_TECH_EXTRA:
         insert_entry(conn, "Workplace & Tech", category, sv, pos, en, note, ex, None, is_custom=0)
+
+    for category, sv, pos, en in TUTOR_TOOLKIT:
+        insert_entry(conn, "Tutor Toolkit", category, sv, pos, en, None, None, None, is_custom=0)
