@@ -112,6 +112,43 @@ HOME_DAILY_LIFE_EXTRA = [
      None, "Nu för tiden sköter han sig själv."),
 ]
 
+# Hand-written distance and directions vocabulary: extends the existing
+# "Places & Directions" category with near/far, the "det finns" existential
+# construction, and church/city/street words for describing where things are.
+PLACES_DIRECTIONS_EXTRA = [
+    # (category, sv, pos, en, note, ex)
+    ("Places & Directions", "Nära", "Adjective/Adverb", "Near / close",
+     None, "Affären ligger nära mitt hus."),
+    ("Places & Directions", "Långt", "Adverb", "Far",
+     "Comparative: längre • Superlative: längst", "Det är långt till stationen."),
+    ("Places & Directions", "Det finns", "Phrase", "There is / there are",
+     "Existential construction with 'finnas'; stays the same regardless of number.", "Det finns en kyrka i stan."),
+    ("Places & Directions", "Kyrka", "Noun (en)", "Church",
+     "Definite: kyrkan • Plural: kyrkor • Def. plural: kyrkorna", "Kyrkan ligger mitt i stan."),
+    ("Places & Directions", "Stad", "Noun (en)", "City / town",
+     "Definite: staden • Plural: städer • Def. plural: städerna (irregular)", "Jag bor i en liten stad."),
+    ("Places & Directions", "By", "Noun (en)", "Village",
+     "Definite: byn • Plural: byar • Def. plural: byarna", "Mina morföräldrar bor i en by."),
+    ("Places & Directions", "Gata", "Noun (en)", "Street",
+     "Definite: gatan • Plural: gator • Def. plural: gatorna", "Vi bor på samma gata."),
+    ("Places & Directions", "Korsning", "Noun (en)", "Intersection / crossing",
+     "Definite: korsningen • Plural: korsningar • Def. plural: korsningarna", "Vänta vid korsningen."),
+    ("Places & Directions", "Centrum", "Noun (ett)", "City center / downtown",
+     "Indeclinable: same in singular, plural, and definite forms.", "Vi ska till centrum ikväll."),
+    ("Places & Directions", "Svänga", "Verb", "To turn",
+     "Infinitive: svänga • Past: svängde • Supine: svängt", "Sväng vänster vid korsningen."),
+    ("Places & Directions", "Hur långt är det till…?", "Phrase", "How far is it to…?",
+     None, "Hur långt är det till centrum?"),
+    ("Places & Directions", "Rakt fram", "Phrase", "Straight ahead",
+     None, "Gå rakt fram och sväng sedan vänster."),
+    ("Places & Directions", "Till vänster / till höger", "Phrase", "To the left / to the right",
+     None, "Sväng till höger vid kyrkan."),
+    ("Places & Directions", "I närheten", "Phrase", "Nearby / in the vicinity",
+     None, "Finns det en bank i närheten?"),
+    ("Places & Directions", "På andra sidan", "Phrase", "On the other side",
+     None, "Biblioteket ligger på andra sidan gatan."),
+]
+
 # Hand-written weather and news small talk: extends the existing "Family &
 # Weather Chat" category (the CSV only had bare nouns) and adds a new "News &
 # Current Events" category — both common territory for everyday small talk.
@@ -246,6 +283,9 @@ def seed_database(conn):
         insert_entry(conn, "Workplace & Tech", category, sv, pos, en, note, ex, None, is_custom=0)
 
     for category, sv, pos, en, note, ex in HOME_DAILY_LIFE_EXTRA:
+        insert_entry(conn, "Home & Daily Life", category, sv, pos, en, note, ex, None, is_custom=0)
+
+    for category, sv, pos, en, note, ex in PLACES_DIRECTIONS_EXTRA:
         insert_entry(conn, "Home & Daily Life", category, sv, pos, en, note, ex, None, is_custom=0)
 
     for category, sv, pos, en, note, ex in SOCIAL_SMALL_TALK_EXTRA:
