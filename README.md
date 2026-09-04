@@ -24,6 +24,8 @@ translation of that example — enforced by seed validation, not by convention.
 ├── db.py                # SQLite connection, schema, query helpers
 ├── seed.py              # One-time seed: migrates words/svenska.csv + hand-written content
 ├── requirements.txt     # Python dependencies (Streamlit)
+├── .streamlit/
+│   └── config.toml      # Shows real tracebacks instead of redacted errors
 ├── Dockerfile            # Container image for the app
 ├── docker-compose.yml   # Runs the app on :8501, bind-mounts words/
 ├── .dockerignore
@@ -172,6 +174,32 @@ Open **http://localhost:8501**.
   → Theme) — no custom toggle needed.
 - **Responsive single-column layout** (`layout="centered"`), works narrow or
   wide.
+
+## Troubleshooting a deploy
+
+**`ImportError` on `from seed import ensure_seeded` (or any name imported from
+`db`/`seed`) after a push.** The source is fine; the running process isn't.
+Streamlit Community Cloud picked up the new `streamlit_app.py` but kept a
+pre-change `seed`/`db` in `sys.modules`, so the app is running a mix of old and
+new modules. **Reboot the app** — Manage app (lower right) → ⋮ → Reboot app —
+which restarts the Python process and re-imports everything. A push that
+touches `.streamlit/config.toml` or `requirements.txt` also forces a full
+restart.
+
+To tell this apart from a real import bug, check out the deployed commit and
+import it directly:
+
+```bash
+python3 -c "from seed import ensure_seeded; from db import get_connection; print('imports OK')"
+```
+
+If that passes, the repository is consistent and the problem is the running
+process, not the code.
+
+`.streamlit/config.toml` sets `showErrorDetails = "full"` so errors appear in
+full instead of "the original error message is redacted to prevent data
+leaks". Change it to `"stacktrace"` or `"none"` if you ever share the app more
+widely.
 
 ## Adding vocabulary
 

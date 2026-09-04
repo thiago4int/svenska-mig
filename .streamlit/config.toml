@@ -1,0 +1,7 @@
+[client]
+# Show real tracebacks in the browser instead of the redacted
+# "error message is redacted to prevent data leaks" placeholder.
+# This is a personal app over a local SQLite file with no secrets, so a
+# readable stack trace is worth far more than the redaction. Set this to
+# "stacktrace" (or "none") if the app is ever shared more widely.
+showErrorDetails = "full"
