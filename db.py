@@ -13,24 +13,36 @@ CREATE TABLE IF NOT EXISTS entries (
     en TEXT NOT NULL,
     note TEXT,
     ex TEXT,
+    ex_en TEXT,
     fn TEXT,
     is_custom INTEGER NOT NULL DEFAULT 0,
     mistake_count INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 """
+
+ADDED_COLUMNS = {
+    "mistake_count": "INTEGER NOT NULL DEFAULT 0",
+    "ex_en": "TEXT",
+}
 
 
 def _migrate(conn):
     columns = {row["name"] for row in conn.execute("PRAGMA table_info(entries)")}
-    if "mistake_count" not in columns:
-        conn.execute("ALTER TABLE entries ADD COLUMN mistake_count INTEGER NOT NULL DEFAULT 0")
+    for column, definition in ADDED_COLUMNS.items():
+        if column not in columns:
+            conn.execute(f"ALTER TABLE entries ADD COLUMN {column} {definition}")
     conn.commit()
 
 
 def get_connection():
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row
-    conn.execute(SCHEMA)
+    conn.executescript(SCHEMA)
     conn.commit()
     _migrate(conn)
     return conn
@@ -40,11 +52,31 @@ def is_empty(conn):
     return conn.execute("SELECT COUNT(*) FROM entries").fetchone()[0] == 0
 
 
-def insert_entry(conn, tab, category, sv, pos, en, note, ex, fn, is_custom=0, mistake_count=0):
+def get_meta(conn, key):
+    row = conn.execute("SELECT value FROM meta WHERE key = ?", (key,)).fetchone()
+    return row["value"] if row else None
+
+
+def set_meta(conn, key, value):
     conn.execute(
-        """INSERT INTO entries (tab, category, sv, pos, en, note, ex, fn, is_custom, mistake_count)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (tab, category, sv, pos, en, note, ex, fn, int(is_custom), int(mistake_count)),
+        "INSERT INTO meta (key, value) VALUES (?, ?) "
+        "ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        (key, str(value)),
+    )
+    conn.commit()
+
+
+def delete_seed_entries(conn):
+    """Drop seed-provided rows, keeping anything added through Add Entry."""
+    conn.execute("DELETE FROM entries WHERE is_custom = 0")
+    conn.commit()
+
+
+def insert_entry(conn, tab, category, sv, pos, en, note, ex, ex_en, fn, is_custom=0, mistake_count=0):
+    conn.execute(
+        """INSERT INTO entries (tab, category, sv, pos, en, note, ex, ex_en, fn, is_custom, mistake_count)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (tab, category, sv, pos, en, note, ex, ex_en, fn, int(is_custom), int(mistake_count)),
     )
     conn.commit()
 
@@ -72,8 +104,11 @@ def fetch_entries(conn, tab=None, categories=None, pos_list=None, search=None, o
 
     if search:
         like = f"%{search}%"
-        query += " AND (sv LIKE ? OR en LIKE ? OR category LIKE ? OR note LIKE ? OR ex LIKE ?)"
-        params.extend([like] * 5)
+        query += (
+            " AND (sv LIKE ? OR en LIKE ? OR category LIKE ? OR note LIKE ?"
+            " OR ex LIKE ? OR ex_en LIKE ?)"
+        )
+        params.extend([like] * 6)
 
     query += " ORDER BY tab, category, sv"
     return conn.execute(query, params).fetchall()

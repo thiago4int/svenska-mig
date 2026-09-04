@@ -2,10 +2,17 @@ import random
 
 import streamlit as st
 
-from db import distinct_values, fetch_entries, get_connection, insert_entry, is_empty
-from seed import seed_database
+from db import distinct_values, fetch_entries, get_connection, insert_entry
+from seed import ensure_seeded
 
-TABS = ["Workplace & Tech", "Social & Small Talk", "Home & Daily Life", "Grammar & V2 Anchors", "Tutor Toolkit"]
+TABS = [
+    "Workplace & Tech",
+    "Social & Small Talk",
+    "Home & Daily Life",
+    "Grammar & V2 Anchors",
+    "Questions & Prepositions",
+    "Tutor Toolkit",
+]
 
 FN_LABELS = {
     "position-1": "Position-1 anchors (fronted time/place adverbials)",
@@ -21,8 +28,7 @@ st.set_page_config(page_title="Svenska", page_icon="🇸🇪", layout="centered"
 @st.cache_resource
 def get_db():
     conn = get_connection()
-    if is_empty(conn):
-        seed_database(conn)
+    ensure_seeded(conn)
     return conn
 
 
@@ -48,6 +54,8 @@ def render_entry(entry):
 
         if entry["ex"]:
             st.code(entry["ex"], language=None)
+        if entry["ex_en"]:
+            st.caption(entry["ex_en"])
 
         if entry["mistake_count"]:
             times = "time" if entry["mistake_count"] == 1 else "times"
@@ -189,6 +197,8 @@ def reverse_drill_tab():
                 st.caption(f"Forms: {current['note']}")
             if current["ex"]:
                 st.code(current["ex"], language=None)
+            if current["ex_en"]:
+                st.caption(current["ex_en"])
 
     if st.button("Next card ➡️"):
         remaining = pool_ids - {current["id"]} or pool_ids
@@ -211,7 +221,8 @@ def add_entry_tab():
         pos = st.text_input("Part of speech")
         en = st.text_input("English")
         note = st.text_input("Note (forms, etc.)")
-        ex = st.text_area("Example sentence")
+        ex = st.text_area("Example sentence (Swedish)")
+        ex_en = st.text_area("Example sentence (English)")
         fn = st.selectbox(
             "V2 function group (only relevant for Grammar & V2 Anchors)",
             ["", "position-1", "contrast", "subordinating", "modal"],
@@ -232,6 +243,7 @@ def add_entry_tab():
                     en,
                     note or None,
                     ex or None,
+                    ex_en or None,
                     fn or None,
                     is_custom=1,
                     mistake_count=1 if got_wrong else 0,
