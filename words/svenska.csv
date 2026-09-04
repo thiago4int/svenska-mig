@@ -1,195 +1,195 @@
-#,Category,Word Type,Swedish,English,Other forms (tense / plural / etc.)
-1,Greetings and pleasantries,Interjection,Hej,Hello,—
-2,Greetings and pleasantries,Interjection,Hej då,Goodbye,—
-3,Greetings and pleasantries,Phrase,God morgon,Good morning,—
-4,Greetings and pleasantries,Phrase,God kväll,Good evening,—
-5,Greetings and pleasantries,Interjection,Tack,Thank you,—
-6,Greetings and pleasantries,Interjection,Varsågod,You're welcome/Please,—
-7,Greetings and pleasantries,Interjection,Förlåt,Sorry,—
-8,Greetings and pleasantries,Interjection,Ursäkta,Excuse me,—
-9,Greetings and pleasantries,Particle,Ja,Yes,—
-10,Greetings and pleasantries,Particle,Nej,No,—
-11,Greetings and pleasantries,Adverb,Snälla,Please (when making a request),—
-12,Greetings and pleasantries,Phrase,Hur mår du?,How are you?,—
-13,Greetings and pleasantries,Phrase,Jag mår bra,I'm fine,—
-14,People and pronouns,Pronoun,Jag,I,Object form: mig
-15,People and pronouns,Pronoun,Du,You (singular),Object form: dig
-16,People and pronouns,Pronoun,Han,He,Object form: honom
-17,People and pronouns,Pronoun,Hon,She,Object form: henne
-18,People and pronouns,Pronoun,Hen,They (gender-neutral singular),Object form: hen
-19,People and pronouns,Pronoun,Vi,We,Object form: oss
-20,People and pronouns,Pronoun,Ni,You (plural),Object form: er
-21,People and pronouns,Pronoun,De,They,Object form: dem
-22,People and pronouns,Noun (en),Man,Man,Definite: mannen • Plural: män • Def. plural: männen
-23,People and pronouns,Noun (en),Kvinna,Woman,Definite: kvinnan • Plural: kvinnor • Def. plural: kvinnorna
-24,People and pronouns,Noun (ett),Barn,Child,Definite: barnet • Plural: barn • Def. plural: barnen
-25,People and pronouns,Noun (en),Familj,Family,Definite: familjen • Plural: familjer • Def. plural: familjerna
-26,People and pronouns,Noun (en),Vän,Friend,Definite: vännen • Plural: vänner • Def. plural: vännerna
-27,Everyday verbs,Verb,Är,Am/is/are,Infinitive: vara • Past: var • Supine: varit
-28,Everyday verbs,Verb,Har,Have/has,Infinitive: ha • Past: hade • Supine: haft
-29,Everyday verbs,Verb,Gör,Do/does/doing,Infinitive: göra • Past: gjorde • Supine: gjort
-30,Everyday verbs,Verb,Pratar,Speaking/talking,Infinitive: prata • Past: pratade • Supine: pratat
-31,Everyday verbs,Verb,Äter,Eating,Infinitive: äta • Past: åt • Supine: ätit
-32,Everyday verbs,Verb,Dricker,Drinking,Infinitive: dricka • Past: drack • Supine: druckit
-33,Everyday verbs,Verb,Går,Go/walking,Infinitive: gå • Past: gick • Supine: gått
-34,Everyday verbs,Verb,Kommer,Coming,Infinitive: komma • Past: kom • Supine: kommit
-35,Everyday verbs,Verb,Sover,Sleeping,Infinitive: sova • Past: sov • Supine: sovit
-36,Everyday verbs,Verb,Ser,Seeing,Infinitive: se • Past: såg • Supine: sett
-37,Everyday verbs,Verb,Hör,Hearing,Infinitive: höra • Past: hörde • Supine: hört
-38,Everyday verbs,Verb phrase,Tycker om,Liking,Infinitive: tycka om • Past: tyckte om • Supine: tyckt om
-39,Everyday verbs,Verb,Vill,Want,Infinitive: vilja • Past: ville • Supine: velat
-40,Food and drink,Noun (en),Mat,Food,"Definite: maten (uncountable, no common plural)"
-41,Food and drink,Noun (en),Dryck,Beverage,Definite: drycken • Plural: drycker • Def. plural: dryckerna
-42,Food and drink,Noun (ett),Vatten,Water,Definite: vattnet (uncountable)
-43,Food and drink,Noun (ett),Kaffe,Coffee,Definite: kaffet (uncountable)
-44,Food and drink,Noun (ett),Te,Tea,Definite: teet (uncountable)
-45,Food and drink,Noun (ett),Öl,Beer,Definite: ölet • Plural: öl • Def. plural: ölen
-46,Food and drink,Noun (ett),Vin,Wine,Definite: vinet • Plural: vin • Def. plural: vinen
-47,Food and drink,Noun (ett),Bröd,Bread,Definite: brödet • Plural: bröd • Def. plural: bröden
-48,Food and drink,Noun (ett),Smör,Butter,Definite: smöret (uncountable)
-49,Food and drink,Noun (en),Ost,Cheese,Definite: osten • Plural: ostar • Def. plural: ostarna
-50,Food and drink,Noun (ett),Kött,Meat,Definite: köttet (uncountable)
-51,Food and drink,Noun (en),Fisk,Fish,Definite: fisken • Plural: fiskar • Def. plural: fiskarna
-52,Food and drink,Noun (en),Frukt,Fruit,Definite: frukten • Plural: frukter • Def. plural: frukterna
-53,Food and drink,"Noun (en, pl.)",Grönsaker,Vegetables,Singular: grönsak • Definite: grönsaken • Def. plural: grönsakerna
-54,Time and days,Noun (en),Tid,Time,Definite: tiden • Plural: tider • Def. plural: tiderna
-55,Time and days,Adverb,Idag,Today,—
-56,Time and days,Adverb,Imorgon,Tomorrow,—
-57,Time and days,Adverb,Igår,Yesterday,—
-58,Time and days,Adverb,Nu,Now,—
-59,Time and days,Adverb,Senare,Later,—
-60,Time and days,Noun (en),Måndag,Monday,Definite: måndagen • Plural: måndagar • Def. plural: måndagarna
-61,Time and days,Noun (en),Tisdag,Tuesday,Definite: tisdagen • Plural: tisdagar • Def. plural: tisdagarna
-62,Time and days,Noun (en),Onsdag,Wednesday,Definite: onsdagen • Plural: onsdagar • Def. plural: onsdagarna
-63,Time and days,Noun (en),Torsdag,Thursday,Definite: torsdagen • Plural: torsdagar • Def. plural: torsdagarna
-64,Time and days,Noun (en),Fredag,Friday,Definite: fredagen • Plural: fredagar • Def. plural: fredagarna
-65,Time and days,Noun (en),Lördag,Saturday,Definite: lördagen • Plural: lördagar • Def. plural: lördagarna
-66,Time and days,Noun (en),Söndag,Sunday,Definite: söndagen • Plural: söndagar • Def. plural: söndagarna
-67,Time and days,Noun (en),Vecka,Week,Definite: veckan • Plural: veckor • Def. plural: veckorna
-68,Time and days,Noun (en),Månad,Month,Definite: månaden • Plural: månader • Def. plural: månaderna
-69,Numbers and counting,Numeral,Ett,One,—
-70,Numbers and counting,Numeral,Två,Two,—
-71,Numbers and counting,Numeral,Tre,Three,—
-72,Numbers and counting,Numeral,Fyra,Four,—
-73,Numbers and counting,Numeral,Fem,Five,—
-74,Numbers and counting,Numeral,Sex,Six,—
-75,Numbers and counting,Numeral,Sju,Seven,—
-76,Numbers and counting,Numeral,Åtta,Eight,—
-77,Numbers and counting,Numeral,Nio,Nine,—
-78,Numbers and counting,Numeral,Tio,Ten,—
-79,Numbers and counting,Numeral,Hundra,Hundred,—
-80,Numbers and counting,Numeral,Tusen,Thousand,—
-81,Numbers and counting,Adjective (ordinal),Första,First,Neuter/Plural: första (invariable)
-82,Numbers and counting,Adjective (ordinal),Andra,Second,Neuter/Plural: andra (invariable)
-83,Places and directions,Adverb,Här,Here,—
-84,Places and directions,Adverb,Där,There,—
-85,Places and directions,Adjective/Noun,Vänster,Left,Invariable
-86,Places and directions,Adjective/Noun,Höger,Right,Invariable
-87,Places and directions,Adverb,Upp,Up,—
-88,Places and directions,Adverb,Ner,Down,—
-89,Places and directions,Preposition,Framför,In front of,—
-90,Places and directions,Preposition,Bakom,Behind,—
-91,Places and directions,Noun (ett),Hus,House,Definite: huset • Plural: hus • Def. plural: husen
-92,Places and directions,Noun (en),Affär,Store,Definite: affären • Plural: affärer • Def. plural: affärerna
-93,Places and directions,Noun (en),Restaurang,Restaurant,Definite: restaurangen • Plural: restauranger • Def. plural: restaurangerna
-94,Places and directions,Noun (ett),Hotell,Hotel,Definite: hotellet • Plural: hotell • Def. plural: hotellen
-95,Places and directions,Noun (en),Station,Station,Definite: stationen • Plural: stationer • Def. plural: stationerna
-96,Places and directions,Noun (ett),Sjukhus,Hospital,Definite: sjukhuset • Plural: sjukhus • Def. plural: sjukhusen
-97,Places and directions,Noun (en),Toalett,Toilet,Definite: toaletten • Plural: toaletter • Def. plural: toaletterna
-98,Colors and adjectives,Adjective,Röd,Red,Neuter: rött • Plural: röda
-99,Colors and adjectives,Adjective,Blå,Blue,Neuter: blått • Plural: blåa
-100,Colors and adjectives,Adjective,Gul,Yellow,Neuter: gult • Plural: gula
-101,Colors and adjectives,Adjective,Grön,Green,Neuter: grönt • Plural: gröna
-102,Colors and adjectives,Adjective,Svart,Black,Neuter: svart • Plural: svarta
-103,Colors and adjectives,Adjective,Vit,White,Neuter: vitt • Plural: vita
-104,Colors and adjectives,Adjective,Stor,Big,Neuter: stort • Plural: stora
-105,Colors and adjectives,Adjective,Liten,Small,Neuter: litet • Plural: små (irregular)
-106,Colors and adjectives,Adjective,Varm,Hot/warm,Neuter: varmt • Plural: varma
-107,Colors and adjectives,Adjective,Kall,Cold,Neuter: kallt • Plural: kalla
-108,Colors and adjectives,Adjective,Bra,Good,Invariable
-109,Colors and adjectives,Adjective,Dålig,Bad,Neuter: dåligt • Plural: dåliga
-110,Colors and adjectives,Adjective,Ny,New,Neuter: nytt • Plural: nya
-111,Question words & prepositions,Pronoun,Vad,What,—
-112,Question words & prepositions,Adverb,Var,Where,—
-113,Question words & prepositions,Adverb,När,When,—
-114,Question words & prepositions,Adverb,Varför,Why,—
-115,Question words & prepositions,Adverb,Hur,How,—
-116,Question words & prepositions,Pronoun,Vem,Who,Same form as subject/object
-117,Question words & prepositions,Pronoun,Vilken,Which,Neuter: vilket • Plural: vilka
-118,Question words & prepositions,Phrase,Hur mycket,How much,—
-119,Question words & prepositions,Phrase,Hur många,How many,—
-120,Question words & prepositions,Preposition,I,In,—
-121,Question words & prepositions,Preposition,På,On,—
-122,Question words & prepositions,Preposition,Under,Under/during,—
-123,Question words & prepositions,Preposition,Med,With,—
-124,Question words & prepositions,Preposition,Till,To,—
-125,Question words & prepositions,Preposition,Från,From,—
-126,Question words & prepositions,Preposition/Conjunction,Om,About/if,—
-127,"Weather, family & professions",Noun (ett),Väder,Weather,Definite: vädret (uncountable)
-128,"Weather, family & professions",Noun (en),Sol,Sun,Definite: solen • Plural: solar • Def. plural: solarna
-129,"Weather, family & professions",Noun (ett),Regn,Rain,Definite: regnet (uncountable)
-130,"Weather, family & professions",Noun (en),Snö,Snow,Definite: snön (uncountable)
-131,"Weather, family & professions",Noun (en),Vind,Wind,Definite: vinden • Plural: vindar • Def. plural: vindarna
-132,"Weather, family & professions",Noun (ett),Moln,Cloud,Definite: molnet • Plural: moln • Def. plural: molnen
-133,"Weather, family & professions",Phrase,Det regnar,It's raining,—
-134,"Weather, family & professions",Phrase,Det är soligt,It's sunny,—
-135,"Weather, family & professions",Noun (en),Mamma,Mom,Definite: mamman • Plural: mammor • Def. plural: mammorna
-136,"Weather, family & professions",Noun (en),Pappa,Dad,Definite: pappan • Plural: pappor • Def. plural: papporna
-137,"Weather, family & professions",Noun (en),Syster,Sister,Definite: systern • Plural: systrar • Def. plural: systrarna
-138,"Weather, family & professions",Noun (en),Bror,Brother,Definite: brodern • Plural: bröder • Def. plural: bröderna (irregular)
-139,"Weather, family & professions",Noun (en),Dotter,Daughter,Definite: dottern • Plural: döttrar • Def. plural: döttrarna (irregular)
-140,"Weather, family & professions",Noun (en),Son,Son,Definite: sonen • Plural: söner • Def. plural: sönerna
-141,"Weather, family & professions",Noun (en),Lärare,Teacher,Definite: läraren • Plural: lärare • Def. plural: lärarna
-142,"Weather, family & professions",Noun (en),Läkare,Doctor,Definite: läkaren • Plural: läkare • Def. plural: läkarna
-143,"Weather, family & professions",Noun (en),Student,Student,Definite: studenten • Plural: studenter • Def. plural: studenterna
-144,"Weather, family & professions",Noun (en),Kock,Chef/cook,Definite: kocken • Plural: kockar • Def. plural: kockarna
-145,"Weather, family & professions",Noun (en),Polis,Police officer,Definite: polisen • Plural: poliser • Def. plural: poliserna
-146,More adjectives,Adjective,Lätt,Easy/light,Neuter: lätt • Plural: lätta
-147,More adjectives,Adjective,Svår,Difficult,Neuter: svårt • Plural: svåra
-148,More adjectives,Adjective,Gammal,Old,Neuter: gammalt • Plural: gamla
-149,More adjectives,Adjective,Snabb,Fast,Neuter: snabbt • Plural: snabba
-150,More adjectives,Adjective,Långsam,Slow,Neuter: långsamt • Plural: långsamma
-151,More adjectives,Adjective,Lång,Long/tall,Neuter: långt • Plural: långa
-152,More adjectives,Adjective,Kort,Short,Neuter: kort • Plural: korta
-153,More adjectives,Adjective,Stark,Strong,Neuter: starkt • Plural: starka
-154,More adjectives,Adjective,Svag,Weak,Neuter: svagt • Plural: svaga
-155,More adjectives,Adjective,Rolig,Fun,Neuter: roligt • Plural: roliga
-156,More adjectives,Adjective,Tråkig,Boring,Neuter: tråkigt • Plural: tråkiga
-157,More adjectives,Adjective,Vacker,Beautiful,Neuter: vackert • Plural: vackra
-158,More adjectives,Adjective,Snäll,Kind,Neuter: snällt • Plural: snälla
-159,Nature and seasons,Noun (en),Dag,Day,Definite: dagen • Plural: dagar • Def. plural: dagarna
-160,Nature and seasons,Adjective,Mörk,Dark,Neuter: mörkt • Plural: mörka
-161,Nature and seasons,Noun (ett),Mörker,Darkness,Definite: mörkret (uncountable)
-162,Nature and seasons,Noun (en),Vinter,Winter,Definite: vintern • Plural: vintrar • Def. plural: vintrarna
-163,Nature and seasons,Noun (en),Årstid,Season,Definite: årstiden • Plural: årstider • Def. plural: årstiderna
-164,Feelings and emotions,Adjective,Trött,Tired,Neuter: trött • Plural: trötta
-165,Feelings and emotions,Adjective,Ledsen,Sad,Neuter: ledset • Plural: ledsna
-166,Feelings and emotions,Noun (en),Trötthet,Tiredness,Definite: tröttheten (uncountable)
-167,More verbs,Verb,Lider,Suffering/suffers,Infinitive: lida • Past: led • Supine: lidit
-168,More verbs,Verb,Blir,Becoming/becomes,Infinitive: bli • Past: blev • Supine: blivit
-169,More verbs,Verb,Säger,Saying/says,Infinitive: säga • Past: sa • Supine: sagt
-170,More verbs,Verb,Förstår,Understanding/understands,Infinitive: förstå • Past: förstod • Supine: förstått
-171,More verbs,Verb,Tar,Taking/takes,Infinitive: ta • Past: tog • Supine: tagit
-172,More verbs,Verb,Försvinner,Disappearing/disappears,Infinitive: försvinna • Past: försvann • Supine: försvunnit
-173,More verbs,Verb,Frågar,Asking/asks,Infinitive: fråga • Past: frågade • Supine: frågat
-174,More verbs,Verb,Köper,Buying/buys,Infinitive: köpa • Past: köpte • Supine: köpt
-175,More verbs,Verb,Automatiserar,Automating/automates,Infinitive: automatisera • Past: automatiserade • Supine: automatiserat
-176,More verbs,Verb (modal),Ska,Shall/will (going to),Infinitive: skola • Past: skulle • Supine: skolat
-177,Conjunctions and connectors,Conjunction,Och,And,—
-178,Conjunctions and connectors,Conjunction,Men,But,—
-179,Conjunctions and connectors,Conjunction,Att,That / to (infinitive marker),—
-180,Pronouns and articles,Pronoun,Det,It (neuter),Object form: det
-181,Pronouns and articles,Pronoun,Den,It (common gender),Object form: den
-182,Pronouns and articles,Pronoun,Ingen,No one/none,Neuter: inget • Plural: inga
-183,Pronouns and articles,Pronoun,Själv,Self/myself,Plural: själva
-184,Pronouns and articles,Article,En,A/an (common gender),Neuter: ett
-185,More adjectives,Adjective,Förra,Last/previous,Invariable (used before noun)
-186,More adjectives,Adjective,Riktig,Real/proper,Neuter: riktigt • Plural: riktiga
-187,More adjectives,Adjective,Väldefinierad,Well-defined,Neuter: väldefinierat • Plural: väldefinierade
-188,Health and body,Noun (ett),Vitamin,Vitamin,Definite: vitaminet • Plural: vitaminer • Def. plural: vitaminerna
-189,Home and objects,Noun (en),Glödlampa,Lightbulb,Definite: glödlampan • Plural: glödlampor • Def. plural: glödlamporna
-190,Places and directions,Proper noun,Brasilien,Brazil,—
-191,Adverbs and function words,Adverb,Mycket,Much/a lot,—
-192,Adverbs and function words,Adverb,Inte,Not,—
-193,Adverbs and function words,Adverb,Fortfarande,Still,—
-194,Adverbs and function words,Preposition,Av,Of/from/by,—
+#,Category,Word Type,Swedish,English,Other forms (tense / plural / etc.),Example,Example (English)
+1,Greetings and pleasantries,Interjection,Hej,Hello,—,"Hej, hur mår du?","Hi, how are you?"
+2,Greetings and pleasantries,Interjection,Hej då,Goodbye,—,"Hej då, vi ses imorgon!","Goodbye, see you tomorrow!"
+3,Greetings and pleasantries,Phrase,God morgon,Good morning,—,God morgon! Har du sovit gott?,Good morning! Did you sleep well?
+4,Greetings and pleasantries,Phrase,God kväll,Good evening,—,God kväll och välkommen hit.,Good evening and welcome.
+5,Greetings and pleasantries,Interjection,Tack,Thank you,—,Tack för hjälpen!,Thanks for the help!
+6,Greetings and pleasantries,Interjection,Varsågod,You're welcome/Please,—,Här är ditt kaffe. — Tack! — Varsågod.,Here's your coffee. — Thanks! — You're welcome.
+7,Greetings and pleasantries,Interjection,Förlåt,Sorry,—,"Förlåt, jag menade inte att störa.","Sorry, I didn't mean to disturb you."
+8,Greetings and pleasantries,Interjection,Ursäkta,Excuse me,—,"Ursäkta, var ligger stationen?","Excuse me, where is the station?"
+9,Greetings and pleasantries,Particle,Ja,Yes,—,"Ja, det stämmer.","Yes, that's right."
+10,Greetings and pleasantries,Particle,Nej,No,—,"Nej tack, jag är mätt.","No thanks, I'm full."
+11,Greetings and pleasantries,Adverb,Snälla,Please (when making a request),—,"Snälla, kan du hjälpa mig?","Please, can you help me?"
+12,Greetings and pleasantries,Phrase,Hur mår du?,How are you?,—,Hej Anna! Hur mår du idag?,Hi Anna! How are you today?
+13,Greetings and pleasantries,Phrase,Jag mår bra,I'm fine,—,"Tack, jag mår bra.","Thanks, I'm fine."
+14,People and pronouns,Pronoun,Jag,I,Object form: mig,Jag bor i Stockholm.,I live in Stockholm.
+15,People and pronouns,Pronoun,Du,You (singular),Object form: dig,Du pratar bra svenska.,You speak good Swedish.
+16,People and pronouns,Pronoun,Han,He,Object form: honom,Han jobbar på ett sjukhus.,He works at a hospital.
+17,People and pronouns,Pronoun,Hon,She,Object form: henne,Hon läser en bok.,She is reading a book.
+18,People and pronouns,Pronoun,Hen,They (gender-neutral singular),Object form: hen,Hen kommer lite senare.,They are coming a bit later.
+19,People and pronouns,Pronoun,Vi,We,Object form: oss,Vi äter middag klockan sex.,We eat dinner at six o'clock.
+20,People and pronouns,Pronoun,Ni,You (plural),Object form: er,Ni är alltid välkomna.,You are always welcome.
+21,People and pronouns,Pronoun,De,They,Object form: dem,De bor i en liten by.,They live in a small village.
+22,People and pronouns,Noun (en),Man,Man,Definite: mannen • Plural: män • Def. plural: männen,Mannen på bilden är min farbror.,The man in the photo is my uncle.
+23,People and pronouns,Noun (en),Kvinna,Woman,Definite: kvinnan • Plural: kvinnor • Def. plural: kvinnorna,Kvinnan bredvid mig heter Sara.,The woman next to me is called Sara.
+24,People and pronouns,Noun (ett),Barn,Child,Definite: barnet • Plural: barn • Def. plural: barnen,Vi har två barn.,We have two children.
+25,People and pronouns,Noun (en),Familj,Family,Definite: familjen • Plural: familjer • Def. plural: familjerna,Min familj bor i Brasilien.,My family lives in Brazil.
+26,People and pronouns,Noun (en),Vän,Friend,Definite: vännen • Plural: vänner • Def. plural: vännerna,Han är min bästa vän.,He is my best friend.
+27,Everyday verbs,Verb,Är,Am/is/are,Infinitive: vara • Past: var • Supine: varit,Jag är trött idag.,I am tired today.
+28,Everyday verbs,Verb,Har,Have/has,Infinitive: ha • Past: hade • Supine: haft,Hon har en ny cykel.,She has a new bike.
+29,Everyday verbs,Verb,Gör,Do/does/doing,Infinitive: göra • Past: gjorde • Supine: gjort,Vad gör du på helgen?,What are you doing this weekend?
+30,Everyday verbs,Verb,Pratar,Speaking/talking,Infinitive: prata • Past: pratade • Supine: pratat,Vi pratar svenska hemma.,We speak Swedish at home.
+31,Everyday verbs,Verb,Äter,Eating,Infinitive: äta • Past: åt • Supine: ätit,Jag äter frukost klockan sju.,I eat breakfast at seven.
+32,Everyday verbs,Verb,Dricker,Drinking,Infinitive: dricka • Past: drack • Supine: druckit,Han dricker kaffe varje morgon.,He drinks coffee every morning.
+33,Everyday verbs,Verb,Går,Go/walking,Infinitive: gå • Past: gick • Supine: gått,Jag går till jobbet varje dag.,I walk to work every day.
+34,Everyday verbs,Verb,Kommer,Coming,Infinitive: komma • Past: kom • Supine: kommit,Hon kommer hem sent ikväll.,She is coming home late tonight.
+35,Everyday verbs,Verb,Sover,Sleeping,Infinitive: sova • Past: sov • Supine: sovit,Barnen sover redan.,The children are already asleep.
+36,Everyday verbs,Verb,Ser,Seeing,Infinitive: se • Past: såg • Supine: sett,Ser du bussen där borta?,Do you see the bus over there?
+37,Everyday verbs,Verb,Hör,Hearing,Infinitive: höra • Past: hörde • Supine: hört,Jag hör inte vad du säger.,I can't hear what you're saying.
+38,Everyday verbs,Verb phrase,Tycker om,Liking,Infinitive: tycka om • Past: tyckte om • Supine: tyckt om,Jag tycker om att laga mat.,I like cooking.
+39,Everyday verbs,Verb,Vill,Want,Infinitive: vilja • Past: ville • Supine: velat,Vill du ha en kopp te?,Would you like a cup of tea?
+40,Food and drink,Noun (en),Mat,Food,"Definite: maten (uncountable, no common plural)",Maten på restaurangen var jättegod.,The food at the restaurant was really good.
+41,Food and drink,Noun (en),Dryck,Beverage,Definite: drycken • Plural: drycker • Def. plural: dryckerna,Vilken dryck vill du ha?,Which drink would you like?
+42,Food and drink,Noun (ett),Vatten,Water,Definite: vattnet (uncountable),Kan jag få ett glas vatten?,Could I have a glass of water?
+43,Food and drink,Noun (ett),Kaffe,Coffee,Definite: kaffet (uncountable),Jag dricker kaffe utan socker.,I drink coffee without sugar.
+44,Food and drink,Noun (ett),Te,Tea,Definite: teet (uncountable),Hon dricker te på kvällen.,She drinks tea in the evening.
+45,Food and drink,Noun (ett),Öl,Beer,Definite: ölet • Plural: öl • Def. plural: ölen,Vi tog en öl efter jobbet.,We had a beer after work.
+46,Food and drink,Noun (ett),Vin,Wine,Definite: vinet • Plural: vin • Def. plural: vinen,"Ett glas rött vin, tack.","A glass of red wine, please."
+47,Food and drink,Noun (ett),Bröd,Bread,Definite: brödet • Plural: bröd • Def. plural: bröden,Jag bakar bröd på söndagar.,I bake bread on Sundays.
+48,Food and drink,Noun (ett),Smör,Butter,Definite: smöret (uncountable),Det finns smör i kylskåpet.,There is butter in the fridge.
+49,Food and drink,Noun (en),Ost,Cheese,Definite: osten • Plural: ostar • Def. plural: ostarna,Jag vill ha ost på smörgåsen.,I want cheese on the sandwich.
+50,Food and drink,Noun (ett),Kött,Meat,Definite: köttet (uncountable),Vi äter inte kött på vardagar.,We don't eat meat on weekdays.
+51,Food and drink,Noun (en),Fisk,Fish,Definite: fisken • Plural: fiskar • Def. plural: fiskarna,Vi köpte färsk fisk på torget.,We bought fresh fish at the market.
+52,Food and drink,Noun (en),Frukt,Fruit,Definite: frukten • Plural: frukter • Def. plural: frukterna,Det ligger frukt på bordet.,There is fruit on the table.
+53,Food and drink,"Noun (en, pl.)",Grönsaker,Vegetables,Singular: grönsak • Definite: grönsaken • Def. plural: grönsakerna,Jag äter grönsaker varje dag.,I eat vegetables every day.
+54,Time and days,Noun (en),Tid,Time,Definite: tiden • Plural: tider • Def. plural: tiderna,Har du tid en stund?,Do you have a moment?
+55,Time and days,Adverb,Idag,Today,—,Idag är det måndag.,Today is Monday.
+56,Time and days,Adverb,Imorgon,Tomorrow,—,Imorgon börjar jag ett nytt jobb.,Tomorrow I start a new job.
+57,Time and days,Adverb,Igår,Yesterday,—,Igår träffade jag min syster.,Yesterday I met my sister.
+58,Time and days,Adverb,Nu,Now,—,Nu måste jag gå.,Now I have to go.
+59,Time and days,Adverb,Senare,Later,—,Vi ses senare ikväll.,We'll see each other later tonight.
+60,Time and days,Noun (en),Måndag,Monday,Definite: måndagen • Plural: måndagar • Def. plural: måndagarna,På måndag har jag ett möte.,On Monday I have a meeting.
+61,Time and days,Noun (en),Tisdag,Tuesday,Definite: tisdagen • Plural: tisdagar • Def. plural: tisdagarna,Vi tränar varje tisdag.,We work out every Tuesday.
+62,Time and days,Noun (en),Onsdag,Wednesday,Definite: onsdagen • Plural: onsdagar • Def. plural: onsdagarna,Onsdag är veckans mitt.,Wednesday is the middle of the week.
+63,Time and days,Noun (en),Torsdag,Thursday,Definite: torsdagen • Plural: torsdagar • Def. plural: torsdagarna,Kursen börjar på torsdag.,The course starts on Thursday.
+64,Time and days,Noun (en),Fredag,Friday,Definite: fredagen • Plural: fredagar • Def. plural: fredagarna,På fredag kväll ser vi film.,On Friday evening we watch a film.
+65,Time and days,Noun (en),Lördag,Saturday,Definite: lördagen • Plural: lördagar • Def. plural: lördagarna,Vi handlar mat på lördagar.,We buy groceries on Saturdays.
+66,Time and days,Noun (en),Söndag,Sunday,Definite: söndagen • Plural: söndagar • Def. plural: söndagarna,Söndag är en lugn dag.,Sunday is a calm day.
+67,Time and days,Noun (en),Vecka,Week,Definite: veckan • Plural: veckor • Def. plural: veckorna,Nästa vecka åker vi bort.,Next week we're going away.
+68,Time and days,Noun (en),Månad,Month,Definite: månaden • Plural: månader • Def. plural: månaderna,Jag betalar hyran varje månad.,I pay the rent every month.
+69,Numbers and counting,Numeral,Ett,One,—,Klockan är ett.,It's one o'clock.
+70,Numbers and counting,Numeral,Två,Two,—,Jag har två systrar.,I have two sisters.
+71,Numbers and counting,Numeral,Tre,Three,—,Mötet börjar om tre minuter.,The meeting starts in three minutes.
+72,Numbers and counting,Numeral,Fyra,Four,—,Vi är fyra personer.,There are four of us.
+73,Numbers and counting,Numeral,Fem,Five,—,Bussen går om fem minuter.,The bus leaves in five minutes.
+74,Numbers and counting,Numeral,Sex,Six,—,Jag går upp klockan sex.,I get up at six o'clock.
+75,Numbers and counting,Numeral,Sju,Seven,—,Filmen börjar klockan sju.,The film starts at seven.
+76,Numbers and counting,Numeral,Åtta,Eight,—,Han jobbar åtta timmar om dagen.,He works eight hours a day.
+77,Numbers and counting,Numeral,Nio,Nine,—,Butiken öppnar klockan nio.,The shop opens at nine.
+78,Numbers and counting,Numeral,Tio,Ten,—,Det kostar tio kronor.,It costs ten kronor.
+79,Numbers and counting,Numeral,Hundra,Hundred,—,Boken kostar hundra kronor.,The book costs a hundred kronor.
+80,Numbers and counting,Numeral,Tusen,Thousand,—,Tusen tack för hjälpen!,Thanks a million for the help!
+81,Numbers and counting,Adjective (ordinal),Första,First,Neuter/Plural: första (invariable),Det är min första dag på jobbet.,It's my first day at work.
+82,Numbers and counting,Adjective (ordinal),Andra,Second,Neuter/Plural: andra (invariable),Andra gången gick det bättre.,The second time it went better.
+83,Places and directions,Adverb,Här,Here,—,Här bor jag.,This is where I live.
+84,Places and directions,Adverb,Där,There,—,Där ligger biblioteket.,The library is over there.
+85,Places and directions,Adjective/Noun,Vänster,Left,Invariable,Sväng till vänster efter bron.,Turn left after the bridge.
+86,Places and directions,Adjective/Noun,Höger,Right,Invariable,Affären ligger på höger sida.,The shop is on the right-hand side.
+87,Places and directions,Adverb,Upp,Up,—,Vi går upp för trappan.,We're walking up the stairs.
+88,Places and directions,Adverb,Ner,Down,—,Han gick ner till källaren.,He went down to the basement.
+89,Places and directions,Preposition,Framför,In front of,—,Bilen står framför huset.,The car is parked in front of the house.
+90,Places and directions,Preposition,Bakom,Behind,—,Trädgården ligger bakom huset.,The garden is behind the house.
+91,Places and directions,Noun (ett),Hus,House,Definite: huset • Plural: hus • Def. plural: husen,De bor i ett gult hus.,They live in a yellow house.
+92,Places and directions,Noun (en),Affär,Store,Definite: affären • Plural: affärer • Def. plural: affärerna,Affären stänger klockan åtta.,The shop closes at eight.
+93,Places and directions,Noun (en),Restaurang,Restaurant,Definite: restaurangen • Plural: restauranger • Def. plural: restaurangerna,Vi åt på en italiensk restaurang.,We ate at an Italian restaurant.
+94,Places and directions,Noun (ett),Hotell,Hotel,Definite: hotellet • Plural: hotell • Def. plural: hotellen,Hotellet ligger nära stationen.,The hotel is near the station.
+95,Places and directions,Noun (en),Station,Station,Definite: stationen • Plural: stationer • Def. plural: stationerna,Vi möts vid stationen klockan fem.,We're meeting at the station at five.
+96,Places and directions,Noun (ett),Sjukhus,Hospital,Definite: sjukhuset • Plural: sjukhus • Def. plural: sjukhusen,Hon jobbar på ett sjukhus.,She works at a hospital.
+97,Places and directions,Noun (en),Toalett,Toilet,Definite: toaletten • Plural: toaletter • Def. plural: toaletterna,"Ursäkta, var ligger toaletten?","Excuse me, where is the toilet?"
+98,Colors and adjectives,Adjective,Röd,Red,Neuter: rött • Plural: röda,Jag har en röd jacka.,I have a red jacket.
+99,Colors and adjectives,Adjective,Blå,Blue,Neuter: blått • Plural: blåa,Himlen är blå idag.,The sky is blue today.
+100,Colors and adjectives,Adjective,Gul,Yellow,Neuter: gult • Plural: gula,Huset är gult.,The house is yellow.
+101,Colors and adjectives,Adjective,Grön,Green,Neuter: grönt • Plural: gröna,Gräset är grönt på våren.,The grass is green in spring.
+102,Colors and adjectives,Adjective,Svart,Black,Neuter: svart • Plural: svarta,Han har en svart bil.,He has a black car.
+103,Colors and adjectives,Adjective,Vit,White,Neuter: vitt • Plural: vita,Väggarna är vita.,The walls are white.
+104,Colors and adjectives,Adjective,Stor,Big,Neuter: stort • Plural: stora,De bor i ett stort hus.,They live in a big house.
+105,Colors and adjectives,Adjective,Liten,Small,Neuter: litet • Plural: små (irregular),Vi har en liten lägenhet.,We have a small apartment.
+106,Colors and adjectives,Adjective,Varm,Hot/warm,Neuter: varmt • Plural: varma,Kaffet är för varmt.,The coffee is too hot.
+107,Colors and adjectives,Adjective,Kall,Cold,Neuter: kallt • Plural: kalla,Det är kallt ute idag.,It's cold outside today.
+108,Colors and adjectives,Adjective,Bra,Good,Invariable,Det var en bra idé.,That was a good idea.
+109,Colors and adjectives,Adjective,Dålig,Bad,Neuter: dåligt • Plural: dåliga,Vädret är dåligt idag.,The weather is bad today.
+110,Colors and adjectives,Adjective,Ny,New,Neuter: nytt • Plural: nya,Jag har köpt en ny telefon.,I have bought a new phone.
+111,Question words & prepositions,Pronoun,Vad,What,—,Vad heter du?,What is your name?
+112,Question words & prepositions,Adverb,Var,Where,—,Var bor du?,Where do you live?
+113,Question words & prepositions,Adverb,När,When,—,När börjar filmen?,When does the film start?
+114,Question words & prepositions,Adverb,Varför,Why,—,Varför är du sen?,Why are you late?
+115,Question words & prepositions,Adverb,Hur,How,—,Hur kommer du till jobbet?,How do you get to work?
+116,Question words & prepositions,Pronoun,Vem,Who,Same form as subject/object,Vem är det där?,Who is that?
+117,Question words & prepositions,Pronoun,Vilken,Which,Neuter: vilket • Plural: vilka,Vilken buss går till centrum?,Which bus goes to the city centre?
+118,Question words & prepositions,Phrase,Hur mycket,How much,—,Hur mycket kostar det?,How much does it cost?
+119,Question words & prepositions,Phrase,Hur många,How many,—,Hur många barn har ni?,How many children do you have?
+120,Question words & prepositions,Preposition,I,In,—,Jag bor i Stockholm.,I live in Stockholm.
+121,Question words & prepositions,Preposition,På,On,—,Boken ligger på bordet.,The book is on the table.
+122,Question words & prepositions,Preposition,Under,Under/during,—,Katten sover under sängen.,The cat is sleeping under the bed.
+123,Question words & prepositions,Preposition,Med,With,—,Jag åker med bussen.,I go by bus.
+124,Question words & prepositions,Preposition,Till,To,—,Vi åker till Göteborg imorgon.,We're going to Gothenburg tomorrow.
+125,Question words & prepositions,Preposition,Från,From,—,Hon kommer från Brasilien.,She is from Brazil.
+126,Question words & prepositions,Preposition/Conjunction,Om,About/if,—,Vi pratar om vädret.,We're talking about the weather.
+127,"Weather, family & professions",Noun (ett),Väder,Weather,Definite: vädret (uncountable),Vilket härligt väder!,What lovely weather!
+128,"Weather, family & professions",Noun (en),Sol,Sun,Definite: solen • Plural: solar • Def. plural: solarna,Solen skiner idag.,The sun is shining today.
+129,"Weather, family & professions",Noun (ett),Regn,Rain,Definite: regnet (uncountable),Regnet slutade på eftermiddagen.,The rain stopped in the afternoon.
+130,"Weather, family & professions",Noun (en),Snö,Snow,Definite: snön (uncountable),Det ligger snö på marken.,There is snow on the ground.
+131,"Weather, family & professions",Noun (en),Vind,Wind,Definite: vinden • Plural: vindar • Def. plural: vindarna,Vinden är stark idag.,The wind is strong today.
+132,"Weather, family & professions",Noun (ett),Moln,Cloud,Definite: molnet • Plural: moln • Def. plural: molnen,Det finns inte ett moln på himlen.,There isn't a cloud in the sky.
+133,"Weather, family & professions",Phrase,Det regnar,It's raining,—,"Det regnar, ta med paraplyet.","It's raining, bring the umbrella."
+134,"Weather, family & professions",Phrase,Det är soligt,It's sunny,—,Det är soligt och varmt idag.,It's sunny and warm today.
+135,"Weather, family & professions",Noun (en),Mamma,Mom,Definite: mamman • Plural: mammor • Def. plural: mammorna,Min mamma ringer varje söndag.,My mum calls every Sunday.
+136,"Weather, family & professions",Noun (en),Pappa,Dad,Definite: pappan • Plural: pappor • Def. plural: papporna,Pappa lagar middag ikväll.,Dad is cooking dinner tonight.
+137,"Weather, family & professions",Noun (en),Syster,Sister,Definite: systern • Plural: systrar • Def. plural: systrarna,Min syster studerar i Lund.,My sister studies in Lund.
+138,"Weather, family & professions",Noun (en),Bror,Brother,Definite: brodern • Plural: bröder • Def. plural: bröderna (irregular),Jag har en äldre bror.,I have an older brother.
+139,"Weather, family & professions",Noun (en),Dotter,Daughter,Definite: dottern • Plural: döttrar • Def. plural: döttrarna (irregular),Deras dotter börjar skolan i höst.,Their daughter starts school this autumn.
+140,"Weather, family & professions",Noun (en),Son,Son,Definite: sonen • Plural: söner • Def. plural: sönerna,Vår son spelar fotboll.,Our son plays football.
+141,"Weather, family & professions",Noun (en),Lärare,Teacher,Definite: läraren • Plural: lärare • Def. plural: lärarna,Min lärare heter Karin.,My teacher is called Karin.
+142,"Weather, family & professions",Noun (en),Läkare,Doctor,Definite: läkaren • Plural: läkare • Def. plural: läkarna,Jag ska träffa en läkare imorgon.,I'm seeing a doctor tomorrow.
+143,"Weather, family & professions",Noun (en),Student,Student,Definite: studenten • Plural: studenter • Def. plural: studenterna,Han är student på universitetet.,He is a student at the university.
+144,"Weather, family & professions",Noun (en),Kock,Chef/cook,Definite: kocken • Plural: kockar • Def. plural: kockarna,Kocken gjorde en fantastisk soppa.,The chef made a fantastic soup.
+145,"Weather, family & professions",Noun (en),Polis,Police officer,Definite: polisen • Plural: poliser • Def. plural: poliserna,Polisen stod vid korsningen.,The police officer was standing at the intersection.
+146,More adjectives,Adjective,Lätt,Easy/light,Neuter: lätt • Plural: lätta,Provet var lätt.,The test was easy.
+147,More adjectives,Adjective,Svår,Difficult,Neuter: svårt • Plural: svåra,Grammatiken är svår.,The grammar is difficult.
+148,More adjectives,Adjective,Gammal,Old,Neuter: gammalt • Plural: gamla,Huset är väldigt gammalt.,The house is very old.
+149,More adjectives,Adjective,Snabb,Fast,Neuter: snabbt • Plural: snabba,Tåget är snabbt.,The train is fast.
+150,More adjectives,Adjective,Långsam,Slow,Neuter: långsamt • Plural: långsamma,Internet är långsamt idag.,The internet is slow today.
+151,More adjectives,Adjective,Lång,Long/tall,Neuter: långt • Plural: långa,Han är lång och smal.,He is tall and slim.
+152,More adjectives,Adjective,Kort,Short,Neuter: kort • Plural: korta,Mötet blev kort.,The meeting turned out short.
+153,More adjectives,Adjective,Stark,Strong,Neuter: starkt • Plural: starka,Kaffet är för starkt.,The coffee is too strong.
+154,More adjectives,Adjective,Svag,Weak,Neuter: svagt • Plural: svaga,Jag känner mig svag idag.,I feel weak today.
+155,More adjectives,Adjective,Rolig,Fun,Neuter: roligt • Plural: roliga,Filmen var väldigt rolig.,The film was very funny.
+156,More adjectives,Adjective,Tråkig,Boring,Neuter: tråkigt • Plural: tråkiga,Mötet var långt och tråkigt.,The meeting was long and boring.
+157,More adjectives,Adjective,Vacker,Beautiful,Neuter: vackert • Plural: vackra,Utsikten är vacker.,The view is beautiful.
+158,More adjectives,Adjective,Snäll,Kind,Neuter: snällt • Plural: snälla,Grannen är väldigt snäll.,The neighbour is very kind.
+159,Nature and seasons,Noun (en),Dag,Day,Definite: dagen • Plural: dagar • Def. plural: dagarna,Vilken dag är det idag?,What day is it today?
+160,Nature and seasons,Adjective,Mörk,Dark,Neuter: mörkt • Plural: mörka,Det blir mörkt tidigt på vintern.,It gets dark early in winter.
+161,Nature and seasons,Noun (ett),Mörker,Darkness,Definite: mörkret (uncountable),Vi gick hem i mörkret.,We walked home in the dark.
+162,Nature and seasons,Noun (en),Vinter,Winter,Definite: vintern • Plural: vintrar • Def. plural: vintrarna,Vintern i Sverige är lång.,Winter in Sweden is long.
+163,Nature and seasons,Noun (en),Årstid,Season,Definite: årstiden • Plural: årstider • Def. plural: årstiderna,Hösten är min favoritårstid.,Autumn is my favourite season.
+164,Feelings and emotions,Adjective,Trött,Tired,Neuter: trött • Plural: trötta,Jag är trött efter jobbet.,I'm tired after work.
+165,Feelings and emotions,Adjective,Ledsen,Sad,Neuter: ledset • Plural: ledsna,Hon blev ledsen när hon hörde nyheten.,She got sad when she heard the news.
+166,Feelings and emotions,Noun (en),Trötthet,Tiredness,Definite: tröttheten (uncountable),Tröttheten kom efter en lång vecka.,The tiredness came after a long week.
+167,More verbs,Verb,Lider,Suffering/suffers,Infinitive: lida • Past: led • Supine: lidit,Han lider av huvudvärk.,He suffers from headaches.
+168,More verbs,Verb,Blir,Becoming/becomes,Infinitive: bli • Past: blev • Supine: blivit,Det blir kallare i november.,It gets colder in November.
+169,More verbs,Verb,Säger,Saying/says,Infinitive: säga • Past: sa • Supine: sagt,Vad säger du?,What are you saying?
+170,More verbs,Verb,Förstår,Understanding/understands,Infinitive: förstå • Past: förstod • Supine: förstått,Jag förstår inte frågan.,I don't understand the question.
+171,More verbs,Verb,Tar,Taking/takes,Infinitive: ta • Past: tog • Supine: tagit,Jag tar bussen till jobbet.,I take the bus to work.
+172,More verbs,Verb,Försvinner,Disappearing/disappears,Infinitive: försvinna • Past: försvann • Supine: försvunnit,Solen försvinner bakom molnen.,The sun disappears behind the clouds.
+173,More verbs,Verb,Frågar,Asking/asks,Infinitive: fråga • Past: frågade • Supine: frågat,Hon frågar alltid om vädret.,She always asks about the weather.
+174,More verbs,Verb,Köper,Buying/buys,Infinitive: köpa • Past: köpte • Supine: köpt,Vi köper bröd på vägen hem.,We buy bread on the way home.
+175,More verbs,Verb,Automatiserar,Automating/automates,Infinitive: automatisera • Past: automatiserade • Supine: automatiserat,Vi automatiserar testerna den här veckan.,We're automating the tests this week.
+176,More verbs,Verb (modal),Ska,Shall/will (going to),Infinitive: skola • Past: skulle • Supine: skolat,Jag ska ringa dig imorgon.,I'm going to call you tomorrow.
+177,Conjunctions and connectors,Conjunction,Och,And,—,Jag dricker kaffe och läser tidningen.,I drink coffee and read the newspaper.
+178,Conjunctions and connectors,Conjunction,Men,But,—,"Jag ville komma, men jag var sjuk.","I wanted to come, but I was ill."
+179,Conjunctions and connectors,Conjunction,Att,That / to (infinitive marker),—,Det är kul att lära sig svenska.,It's fun to learn Swedish.
+180,Pronouns and articles,Pronoun,Det,It (neuter),Object form: det,Det står på bordet.,It's on the table.
+181,Pronouns and articles,Pronoun,Den,It (common gender),Object form: den,Den är för dyr.,It's too expensive.
+182,Pronouns and articles,Pronoun,Ingen,No one/none,Neuter: inget • Plural: inga,Ingen svarade i telefonen.,Nobody answered the phone.
+183,Pronouns and articles,Pronoun,Själv,Self/myself,Plural: själva,Jag lagade maten själv.,I cooked the food myself.
+184,Pronouns and articles,Article,En,A/an (common gender),Neuter: ett,Jag har en katt och en hund.,I have a cat and a dog.
+185,More adjectives,Adjective,Förra,Last/previous,Invariable (used before noun),Förra veckan var jag i Malmö.,Last week I was in Malmö.
+186,More adjectives,Adjective,Riktig,Real/proper,Neuter: riktigt • Plural: riktiga,Det var en riktig utmaning.,That was a real challenge.
+187,More adjectives,Adjective,Väldefinierad,Well-defined,Neuter: väldefinierat • Plural: väldefinierade,Vi behöver en väldefinierad process.,We need a well-defined process.
+188,Health and body,Noun (ett),Vitamin,Vitamin,Definite: vitaminet • Plural: vitaminer • Def. plural: vitaminerna,Apelsiner innehåller mycket C-vitamin.,Oranges contain a lot of vitamin C.
+189,Home and objects,Noun (en),Glödlampa,Lightbulb,Definite: glödlampan • Plural: glödlampor • Def. plural: glödlamporna,Glödlampan i köket har gått sönder.,The lightbulb in the kitchen has broken.
+190,Places and directions,Proper noun,Brasilien,Brazil,—,Jag kommer från Brasilien.,I'm from Brazil.
+191,Adverbs and function words,Adverb,Mycket,Much/a lot,—,Tack så mycket!,Thank you very much!
+192,Adverbs and function words,Adverb,Inte,Not,—,Jag förstår inte.,I don't understand.
+193,Adverbs and function words,Adverb,Fortfarande,Still,—,Han bor fortfarande i Uppsala.,He still lives in Uppsala.
+194,Adverbs and function words,Preposition,Av,Of/from/by,—,Det är en bok av Astrid Lindgren.,It's a book by Astrid Lindgren.
