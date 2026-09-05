@@ -2,14 +2,28 @@ import random
 
 import streamlit as st
 
-from db import SECTIONS, fetch_entries, get_connection, insert_entry, topic_counts
+from db import (
+    SECTIONS,
+    WORD_CLASSES,
+    fetch_entries,
+    fetch_entries_by_id,
+    get_connection,
+    insert_entry,
+    register_topic,
+    topic_counts,
+    word_class_counts,
+)
 from seed import ensure_seeded
 
-# Navigation is a flat index of topics. A topic is the only thing you pick, and
-# the only thing above it is the section — one of three headings answering "why
-# am I looking at this?": something to talk about, something to look up, or
-# something to say when the conversation stalls. A section is a property of the
-# topic, never of a word, so it is never asked about an individual entry.
+# Words are filed along two independent axes.
+#
+#   topic       what it is about  — Food & Drink, Travel & Transport, Work
+#   word_class  what kind of word — Verb, Noun, Adjective, Phrase
+#
+# One used to do both jobs, which is where "More Verbs" and "Colors &
+# Adjectives" came from: a word class wearing a topic's clothes. Now you can
+# enter from either end, and a word can sit in several topics at once — "äter"
+# is core vocabulary and food vocabulary, not one or the other.
 SECTION_BLURBS = {
     "Topics & situations": "Things to talk about",
     "Grammar & reference": "Things to look up",
@@ -25,6 +39,8 @@ FN_LABELS = {
 FN_ORDER = ["position-1", "contrast", "subordinating", "modal"]
 
 ANCHOR_TOPIC = "V2 Inversion Anchors"
+BY_TOPIC = "By topic"
+BY_WORD_CLASS = "By word class"
 INDEX_COLUMNS = 3
 MAX_RECENTS = 5
 
@@ -41,66 +57,69 @@ def get_db():
 conn = get_db()
 
 
-# --- topic navigation -------------------------------------------------------
+# --- navigation state -------------------------------------------------------
 
 
 def all_topics():
-    """{topic: (section, count)} for every topic in the database."""
-    return {row["category"]: (row["section"], row["n"]) for row in topic_counts(conn)}
+    """{topic: (section, count)}."""
+    return {row["topic"]: (row["section"], row["n"]) for row in topic_counts(conn)}
+
+
+def all_word_classes():
+    """[(word class, count)] in the canonical order, counts included."""
+    counts = {row["word_class"]: row["n"] for row in word_class_counts(conn)}
+    known = [(wc, counts.pop(wc)) for wc in WORD_CLASSES if wc in counts]
+    return known + sorted(counts.items(), key=lambda kv: -kv[1])
 
 
 def open_topic(topic):
-    st.session_state.topic = topic
+    st.session_state.update(topic=topic, word_class=None)
+    st.query_params.clear()
     st.query_params["topic"] = topic
 
     recents = [t for t in st.session_state.get("recents", []) if t != topic]
     st.session_state.recents = [topic] + recents[: MAX_RECENTS - 1]
 
 
-def close_topic():
-    st.session_state.topic = None
-    st.query_params.pop("topic", None)
+def open_word_class(word_class):
+    st.session_state.update(topic=None, word_class=word_class)
+    st.query_params.clear()
+    st.query_params["word_class"] = word_class
 
 
-def current_topic(topics):
-    """The open topic, seeded from ?topic= so links work."""
+def close_all():
+    st.session_state.update(topic=None, word_class=None)
+    st.query_params.clear()
+
+
+def restore_from_url():
+    """Seed the open topic / word class from ?topic= or ?word_class= once."""
     if "topic" not in st.session_state:
         st.session_state.topic = st.query_params.get("topic")
-
-    topic = st.session_state.topic
-    return topic if topic in topics else None
-
-
-def topic_buttons(names, topics, key_prefix):
-    """A grid of topic buttons, each labelled with its entry count."""
-    columns = st.columns(INDEX_COLUMNS)
-    for i, name in enumerate(names):
-        _section, count = topics[name]
-        columns[i % INDEX_COLUMNS].button(
-            f"{name}  ·  {count}",
-            key=f"{key_prefix}_{name}",
-            use_container_width=True,
-            on_click=open_topic,
-            args=(name,),
-        )
+        st.session_state.word_class = st.query_params.get("word_class")
 
 
 # --- rendering --------------------------------------------------------------
 
 
-def render_entry(entry):
+def render_entry(entry, hide_topic=None):
     with st.container(border=True):
         title = f"**{entry['sv']}** — {entry['en']}"
         if entry["is_custom"]:
             title += " 🆕"
         st.markdown(title)
 
-        meta = [entry["category"]]
+        meta = []
         if entry["pos"]:
             meta.append(entry["pos"])
+        # The topic you arrived through is already the heading above, so only
+        # the *other* topics are worth repeating here.
+        others = [t for t in entry["topics"] if t != hide_topic]
+        meta.extend(others)
         if entry["fn"]:
             meta.append(f"fn: {entry['fn']}")
-        st.caption(" · ".join(meta))
+        if meta:
+            st.caption(" · ".join(meta))
 
         if entry["note"]:
             st.caption(f"Forms: {entry['note']}")
@@ -115,67 +134,115 @@ def render_entry(entry):
             st.caption(f"⚠️ Missed {entry['mistake_count']} {times}")
 
 
-def render_index(topics):
-    """The landing screen: every topic at once, one click to open."""
+def button_grid(labels, counts, on_click, key_prefix):
+    columns = st.columns(INDEX_COLUMNS)
+    for i, label in enumerate(labels):
+        columns[i % INDEX_COLUMNS].button(
+            f"{label}  ·  {counts[label]}",
+            key=f"{key_prefix}_{label}",
+            use_container_width=True,
+            on_click=on_click,
+            args=(label,),
+        )
+
+
+def render_topic_index(topics):
+    counts = {name: n for name, (_s, n) in topics.items()}
+
     recents = [t for t in st.session_state.get("recents", []) if t in topics]
     if recents:
         st.caption("Recent")
-        topic_buttons(recents, topics, "recent")
+        button_grid(recents, counts, open_topic, "recent")
         st.divider()
 
     for section in SECTIONS:
         names = sorted(name for name, (sec, _n) in topics.items() if sec == section)
         if not names:
             continue
-        total = sum(topics[name][1] for name in names)
+        total = sum(counts[name] for name in names)
         st.subheader(section)
         st.caption(f"{SECTION_BLURBS[section]} · {len(names)} topics · {total} entries")
-        topic_buttons(names, topics, "index")
+        button_grid(names, counts, open_topic, "index")
         st.write("")
+
+
+def render_word_class_index():
+    st.caption("Every word of one kind, across every topic.")
+    pairs = all_word_classes()
+    counts = {wc: n for wc, n in pairs}
+    button_grid([wc for wc, _n in pairs], counts, open_word_class, "wc")
+
+
+def render_grouped(entries, group_key, order=None, hide_topic=None):
+    """Render entries under headings, in `order` where one is given."""
+    groups = {}
+    for e in entries:
+        groups.setdefault(group_key(e), []).append(e)
+
+    keys = [k for k in (order or []) if k in groups]
+    keys += sorted(k for k in groups if k not in keys)
+
+    single = len(keys) == 1
+    for key in keys:
+        if not single:
+            st.subheader(f"{key} · {len(groups[key])}")
+        for e in groups[key]:
+            render_entry(e, hide_topic=hide_topic)
 
 
 def render_topic(topic, topics):
     section, count = topics[topic]
-    st.button("← All topics", on_click=close_topic)
+    st.button("← All topics", on_click=close_all)
     st.subheader(topic)
     st.caption(f"{section} · {count} entr{'y' if count == 1 else 'ies'}")
 
-    entries = fetch_entries(conn, categories=[topic])
+    entries = fetch_entries(conn, topics=[topic])
 
-    # Offer only the parts of speech that actually occur in this topic.
-    pos_options = sorted({e["pos"] for e in entries if e["pos"]})
-    if len(pos_options) > 1:
-        with st.expander("Refine"):
-            chosen = st.multiselect("Part of speech", pos_options, key=f"pos_{topic}")
+    classes = [wc for wc in WORD_CLASSES if any(e["word_class"] == wc for e in entries)]
+    if len(classes) > 1:
+        chosen = st.pills("Word class", classes, selection_mode="multi", key=f"wc_{topic}")
         if chosen:
-            entries = [e for e in entries if e["pos"] in chosen]
+            entries = [e for e in entries if e["word_class"] in chosen]
 
     if not entries:
         st.info("No entries match the current filters.")
         return
 
-    # The V2 anchors are only useful grouped by what triggers the inversion.
+    # The V2 anchors are the one topic where the useful grouping is what
+    # triggers the inversion, not the word class.
     if topic == ANCHOR_TOPIC:
-        groups = {}
-        for e in entries:
-            groups.setdefault(e["fn"], []).append(e)
-        for fn_key in FN_ORDER:
-            if fn_key in groups:
-                st.subheader(FN_LABELS[fn_key])
-                for e in groups[fn_key]:
-                    render_entry(e)
+        render_grouped(entries, lambda e: FN_LABELS.get(e["fn"], "Other"),
+                       order=[FN_LABELS[k] for k in FN_ORDER], hide_topic=topic)
         return
 
-    for e in entries:
-        render_entry(e)
+    render_grouped(entries, lambda e: e["word_class"], order=WORD_CLASSES, hide_topic=topic)
+
+
+def render_word_class(word_class):
+    entries = fetch_entries(conn, word_classes=[word_class])
+    st.button("← All topics", on_click=close_all)
+    st.subheader(word_class)
+    st.caption(f"{len(entries)} entr{'y' if len(entries) == 1 else 'ies'} across every topic")
+
+    # An entry in several topics is listed under each of them.
+    expanded = [(t, e) for e in entries for t in (e["topics"] or ["(no topic)"])]
+    groups = {}
+    for topic, entry in expanded:
+        groups.setdefault(topic, []).append(entry)
+
+    for topic in sorted(groups):
+        st.subheader(f"{topic} · {len(groups[topic])}")
+        for e in groups[topic]:
+            render_entry(e, hide_topic=topic)
 
 
 def render_search(search, topics):
-    """Search runs across everything — no topic has to be chosen first."""
-    matching_topics = sorted(name for name in topics if search.lower() in name.lower())
-    if matching_topics:
+    """Search runs across everything — nothing has to be chosen first."""
+    counts = {name: n for name, (_s, n) in topics.items()}
+    matching = sorted(name for name in topics if search.lower() in name.lower())
+    if matching:
         st.caption("Matching topics")
-        topic_buttons(matching_topics, topics, "found")
+        button_grid(matching, counts, open_topic, "found")
         st.divider()
 
     entries = fetch_entries(conn, search=search)
@@ -184,31 +251,39 @@ def render_search(search, topics):
         st.info("Nothing matches that search.")
         return
 
-    current_category = None
-    for e in entries:
-        if e["category"] != current_category:
-            st.subheader(e["category"])
-            current_category = e["category"]
-        render_entry(e)
+    render_grouped(entries, lambda e: e["word_class"], order=WORD_CLASSES)
 
 
 def browse_view():
     topics = all_topics()
+    restore_from_url()
+
     search = st.text_input(
         "Search",
         placeholder="Search Swedish, English, topic, notes, examples…",
         key="search",
     )
-
     if search:
         render_search(search, topics)
         return
 
-    topic = current_topic(topics)
-    if topic:
+    topic = st.session_state.topic
+    if topic in topics:
         render_topic(topic, topics)
+        return
+
+    word_class = st.session_state.get("word_class")
+    if word_class:
+        render_word_class(word_class)
+        return
+
+    axis = st.segmented_control(
+        "Browse", [BY_TOPIC, BY_WORD_CLASS], default=BY_TOPIC, key="axis"
+    )
+    if axis == BY_WORD_CLASS:
+        render_word_class_index()
     else:
-        render_index(topics)
+        render_topic_index(topics)
 
 
 def improv_weave_view():
@@ -230,15 +305,10 @@ def improv_weave_view():
         st.info("No entries available yet.")
         return
 
-    placeholders = ",".join("?" for _ in st.session_state.weave_ids)
-    rows = conn.execute(
-        f"SELECT * FROM entries WHERE id IN ({placeholders})", st.session_state.weave_ids
-    ).fetchall()
-    by_id = {r["id"]: r for r in rows}
-    ordered = [by_id[i] for i in st.session_state.weave_ids if i in by_id]
-
-    for e in ordered:
-        render_entry(e)
+    by_id = {e["id"]: e for e in fetch_entries_by_id(conn, st.session_state.weave_ids)}
+    for entry_id in st.session_state.weave_ids:
+        if entry_id in by_id:
+            render_entry(by_id[entry_id])
 
 
 def reverse_drill_view():
@@ -248,14 +318,22 @@ def reverse_drill_view():
     )
 
     topics = all_topics()
-    chosen = st.multiselect(
-        "Topics",
-        sorted(topics),
-        key="reverse_topics",
-        placeholder="All topics",
-    )
+    col1, col2 = st.columns(2)
+    with col1:
+        chosen_topics = st.multiselect(
+            "Topics", sorted(topics), key="reverse_topics", placeholder="All topics"
+        )
+    with col2:
+        chosen_classes = st.multiselect(
+            "Word class",
+            [wc for wc, _n in all_word_classes()],
+            key="reverse_classes",
+            placeholder="All word classes",
+        )
 
-    pool = fetch_entries(conn, categories=chosen or None)
+    pool = fetch_entries(
+        conn, topics=chosen_topics or None, word_classes=chosen_classes or None
+    )
     if not pool:
         st.info("No entries match these filters.")
         return
@@ -269,8 +347,7 @@ def reverse_drill_view():
 
     with st.container(border=True):
         st.markdown(f"### {current['en']}")
-        if current["pos"]:
-            st.caption(current["pos"])
+        st.caption(current["word_class"])
 
         if not st.session_state.reverse_revealed:
             if st.button("👁️ Reveal"):
@@ -281,7 +358,8 @@ def reverse_drill_view():
             if current["is_custom"]:
                 title += " 🆕"
             st.markdown(title)
-            st.caption(current["category"])
+            meta = ([current["pos"]] if current["pos"] else []) + current["topics"]
+            st.caption(" · ".join(meta))
             if current["note"]:
                 st.caption(f"Forms: {current['note']}")
             if current["ex"]:
@@ -297,46 +375,43 @@ def reverse_drill_view():
 
 
 def add_entry_view():
+    flash = st.session_state.pop("add_flash", None)
+    if flash:
+        st.success(flash)
+
     st.write(
         "Add your own entry — during or right after a tutor session works "
         "well, while the correction is still fresh. It's tagged 🆕 so it "
         "stays distinguishable from the seed set."
     )
 
-    flash = st.session_state.pop("add_flash", None)
-    if flash:
-        st.success(flash)
-
     topics = all_topics()
 
-    # Outside the form so choosing a brand-new topic can reveal the one extra
-    # question it needs. Picking an existing topic asks nothing further: the
-    # section comes with the topic.
-    topic = st.selectbox(
-        "Topic",
+    # Outside the form, so a brand-new topic can reveal the one question that
+    # can't be inferred. Existing topics ask nothing further.
+    chosen = st.multiselect(
+        "Topics",
         sorted(topics),
-        index=None,
         accept_new_options=True,
-        placeholder="Pick a topic, or type a new one",
-        key="add_topic",
+        placeholder="Pick one or more topics, or type a new one",
+        key="add_topics",
+        help="A word can belong to several — core vocabulary that is also about food, say.",
     )
 
-    if topic and topic not in topics:
+    new_topics = [t for t in chosen if t not in topics]
+    section = None
+    if new_topics:
         section = st.radio(
-            f"“{topic}” is a new topic — where does it belong?",
+            f"{', '.join(repr(t) for t in new_topics)} — new. Where does it belong?",
             SECTIONS,
             captions=[SECTION_BLURBS[s] for s in SECTIONS],
             key="add_section",
         )
-    else:
-        section = topics[topic][0] if topic else None
-        if topic:
-            st.caption(f"Section: {section}")
 
     with st.form("add_entry_form", clear_on_submit=True):
         sv = st.text_input("Swedish")
         en = st.text_input("English")
-        pos = st.text_input("Part of speech")
+        pos = st.text_input("Part of speech", placeholder="Noun (en), Verb, Adjective…")
         note = st.text_input("Note (forms, etc.)")
         ex = st.text_area("Example sentence (Swedish)")
         ex_en = st.text_area("Example sentence (English)")
@@ -348,13 +423,14 @@ def add_entry_view():
         submitted = st.form_submit_button("Add entry")
 
         if submitted:
-            if not topic or not sv or not en:
-                st.error("Topic, Swedish, and English are required.")
+            if not chosen or not sv or not en:
+                st.error("At least one topic, Swedish, and English are required.")
             else:
+                for topic in new_topics:
+                    register_topic(conn, topic, section)
                 insert_entry(
                     conn,
-                    section,
-                    topic,
+                    chosen,
                     sv,
                     pos or None,
                     en,
@@ -365,7 +441,9 @@ def add_entry_view():
                     is_custom=1,
                     mistake_count=1 if got_wrong else 0,
                 )
-                st.session_state.add_flash = f"Added “{sv}” → “{en}” to {topic}."
+                st.session_state.add_flash = (
+                    f"Added “{sv}” → “{en}” to {', '.join(chosen)}."
+                )
                 st.rerun()
 
 

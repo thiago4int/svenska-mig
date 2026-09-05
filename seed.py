@@ -1,14 +1,22 @@
 import csv
 from pathlib import Path
 
-from db import SECTIONS, delete_seed_entries, get_meta, insert_entry, is_empty, set_meta
+from db import (
+    SECTIONS,
+    delete_seed_entries,
+    get_meta,
+    insert_entry,
+    is_empty,
+    register_topic,
+    set_meta,
+)
 
 CSV_PATH = Path(__file__).parent / "words" / "svenska.csv"
 
 # Bumped whenever the seed content below changes. A deployed app compares this
 # against the value stored in the database and reseeds when they differ, so new
 # vocabulary shows up on deploy without anyone deleting svenska.db by hand.
-SEED_VERSION = "3"
+SEED_VERSION = "4"
 
 # Best-fit mapping from the old flashcard categories onto (section, topic).
 # A section is one of the three headings on the index — the only grouping above
@@ -33,6 +41,87 @@ CATEGORY_MAP = {
     "Health and body": ("Topics & situations", "Health & Body"),
     "Home and objects": ("Topics & situations", "Home & Objects"),
     "Adverbs and function words": ("Grammar & reference", "Adverbs & Function Words"),
+}
+
+
+# The five topics that were really word classes in disguise — "More Verbs",
+# "Everyday Verbs", "More Adjectives", "Colors & Adjectives", "Tech Verbs" —
+# are retired here. Grouping by word class is now the `word_class` axis, which
+# every entry already has, so what these words needed was the thing they never
+# had: the subject they belong to.
+#
+# Most of them turn out to belong to no subject at all. "Everyday Verbs" and
+# "More Verbs" together are vara, ha, göra, gå, komma, se, höra — the core of
+# the language, which is why no domain ever fitted them. They go to Core Words,
+# and pick up a subject only where one genuinely applies.
+BUCKET_RETAG = {
+    # Everyday verbs — the backbone
+    "Är": ("Core Words",),
+    "Har": ("Core Words",),
+    "Gör": ("Core Words",),
+    "Vill": ("Core Words",),
+    "Ser": ("Core Words",),
+    "Hör": ("Core Words",),
+    "Går": ("Core Words", "Places & Directions"),
+    "Kommer": ("Core Words", "Places & Directions"),
+    "Pratar": ("Core Words", "Greetings & Pleasantries"),
+    "Äter": ("Core Words", "Food & Drink"),
+    "Dricker": ("Core Words", "Food & Drink"),
+    "Sover": ("Core Words", "Everyday Expressions"),
+    "Tycker om": ("Core Words", "Opinions & Reactions"),
+    # More verbs — also backbone
+    "Blir": ("Core Words",),
+    "Säger": ("Core Words",),
+    "Tar": ("Core Words",),
+    "Frågar": ("Core Words",),
+    "Försvinner": ("Core Words",),
+    "Förstår": ("Core Words", "Clarification"),
+    "Köper": ("Core Words", "Shopping & Money"),
+    "Lider": ("Core Words", "Health & Body"),
+    "Ska": ("Core Words", "Modal Verbs"),
+    # Colors are a set worth browsing on their own
+    "Röd": ("Colors",),
+    "Blå": ("Colors",),
+    "Gul": ("Colors",),
+    "Grön": ("Colors",),
+    "Svart": ("Colors",),
+    "Vit": ("Colors",),
+    # …the rest of that topic was never about colour
+    "Stor": ("Core Words",),
+    "Liten": ("Core Words",),
+    "Ny": ("Core Words",),
+    "Varm": ("Core Words", "Family & Weather Chat"),
+    "Kall": ("Core Words", "Family & Weather Chat"),
+    "Bra": ("Core Words", "Opinions & Reactions"),
+    "Dålig": ("Core Words", "Opinions & Reactions"),
+    # More adjectives — general-purpose descriptors
+    "Gammal": ("Core Words",),
+    "Lång": ("Core Words",),
+    "Kort": ("Core Words",),
+    "Lätt": ("Core Words",),
+    "Stark": ("Core Words",),
+    "Svag": ("Core Words",),
+    "Vacker": ("Core Words",),
+    "Riktig": ("Core Words",),
+    "Förra": ("Core Words", "Time & Days"),
+    "Snabb": ("Core Words", "Travel & Transport"),
+    "Långsam": ("Core Words", "Travel & Transport"),
+    "Snäll": ("Core Words", "Family & Weather Chat"),
+    "Rolig": ("Core Words", "Opinions & Reactions"),
+    "Tråkig": ("Core Words", "Opinions & Reactions"),
+    "Svår": ("Core Words", "Opinions & Reactions"),
+    "Väldefinierad": ("Tech & Devices",),
+    # the single "Tech Verbs" entry belongs with the rest of the tech words
+    "Automatiserar": ("Tech & Devices",),
+}
+
+# The topics those words used to live in. Nothing may be left in them.
+RETIRED_BUCKETS = {
+    "Everyday Verbs",
+    "More Verbs",
+    "More Adjectives",
+    "Colors & Adjectives",
+    "Tech Verbs",
 }
 
 PROFESSION_WORDS = {"Lärare", "Läkare", "Student", "Kock", "Polis"}
@@ -993,8 +1082,54 @@ def _split_note(forms):
     return None if forms in ("", "—") else forms
 
 
+# Each themed list is written for one section; a row's first field is its topic.
+GROUPED = [
+    ("Grammar & reference", GRAMMAR_EXTRA),
+    ("Grammar & reference", QUESTIONS_PREPOSITIONS),
+    ("Topics & situations", WORKPLACE_TECH_EXTRA),
+    ("Topics & situations", HOME_DAILY_LIFE_EXTRA),
+    ("Topics & situations", PLACES_DIRECTIONS_EXTRA),
+    ("Topics & situations", SOCIAL_SMALL_TALK_EXTRA),
+    ("Conversation toolkit", TUTOR_TOOLKIT),
+]
+
+# Topics the retag introduces, which no list declares on its own.
+NEW_TOPICS = {
+    "Core Words": "Topics & situations",
+    "Colors": "Topics & situations",
+}
+
+
+def topic_sections():
+    """{topic: section} for every topic the seed uses.
+
+    Derived from the same structures that produce the rows, so a topic can
+    never drift out of sync with the section it is filed under.
+    """
+    sections = dict(NEW_TOPICS)
+
+    for section, topic in CATEGORY_MAP.values():
+        if topic not in RETIRED_BUCKETS:
+            sections[topic] = section
+    for topic in PREPOSITION_REHOME.values():
+        sections[topic] = "Grammar & reference"
+
+    # CSV rows that branch by word rather than by category.
+    sections["Professions"] = "Topics & situations"
+    sections["Family & Weather Chat"] = "Topics & situations"
+
+    sections["V2 Inversion Anchors"] = "Grammar & reference"
+    sections["Comparatives & Comparisons"] = "Grammar & reference"
+
+    for section, group in GROUPED:
+        for row in group:
+            sections[row[0]] = section
+
+    return sections
+
+
 def _csv_rows():
-    """Migrate words/svenska.csv into (section, topic, sv, pos, en, note, ex, ex_en, fn) rows."""
+    """Migrate words/svenska.csv into (topics, sv, pos, en, note, ex, ex_en, fn) rows."""
     rows = []
     with CSV_PATH.open(encoding="utf-8") as f:
         for row in csv.DictReader(f):
@@ -1008,75 +1143,74 @@ def _csv_rows():
 
             rehomed = PREPOSITION_REHOME.get((category, sv))
             if rehomed:
-                section, new_category = "Grammar & reference", rehomed
+                topic = rehomed
             elif category == "Weather, family & professions":
-                if sv in PROFESSION_WORDS:
-                    section, new_category = "Topics & situations", "Professions"
-                else:
-                    section, new_category = "Topics & situations", "Family & Weather Chat"
+                topic = "Professions" if sv in PROFESSION_WORDS else "Family & Weather Chat"
             elif sv in TECH_WORDS:
-                section, new_category = "Topics & situations", "Tech Verbs"
+                topic = "Tech Verbs"
             else:
-                section, new_category = CATEGORY_MAP[category]
+                topic = CATEGORY_MAP[category][1]
 
-            rows.append((section, new_category, sv, pos, en, note, ex, ex_en, None))
+            if topic in RETIRED_BUCKETS:
+                topics = BUCKET_RETAG.get(sv)
+                if not topics:
+                    raise ValueError(
+                        f"{sv!r} sits in the retired bucket {topic!r} with no retag"
+                    )
+            else:
+                topics = (topic,)
+
+            rows.append((topics, sv, pos, en, note, ex, ex_en, None))
     return rows
 
 
 def seed_rows():
-    """Every row the seed inserts, as (section, topic, sv, pos, en, note, ex, ex_en, fn)."""
+    """Every row the seed inserts, as (topics, sv, pos, en, note, ex, ex_en, fn)."""
     rows = _csv_rows()
 
     for sv, pos, en, fn, note, ex, ex_en in V2_ANCHORS:
-        rows.append(("Grammar & reference", "V2 Inversion Anchors", sv, pos, en, note, ex, ex_en, fn))
+        rows.append((("V2 Inversion Anchors",), sv, pos, en, note, ex, ex_en, fn))
 
     for sv, pos, en, note, ex, ex_en in COMPARISONS:
-        rows.append(
-            ("Grammar & reference", "Comparatives & Comparisons", sv, pos, en, note, ex, ex_en, None)
-        )
+        rows.append((("Comparatives & Comparisons",), sv, pos, en, note, ex, ex_en, None))
 
-    grouped = [
-        ("Grammar & reference", GRAMMAR_EXTRA),
-        ("Grammar & reference", QUESTIONS_PREPOSITIONS),
-        ("Topics & situations", WORKPLACE_TECH_EXTRA),
-        ("Topics & situations", HOME_DAILY_LIFE_EXTRA),
-        ("Topics & situations", PLACES_DIRECTIONS_EXTRA),
-        ("Topics & situations", SOCIAL_SMALL_TALK_EXTRA),
-        ("Conversation toolkit", TUTOR_TOOLKIT),
-    ]
-    for section, group in grouped:
-        for category, sv, pos, en, note, ex, ex_en in group:
-            rows.append((section, category, sv, pos, en, note, ex, ex_en, None))
+    for _section, group in GROUPED:
+        for topic, sv, pos, en, note, ex, ex_en in group:
+            rows.append(((topic,), sv, pos, en, note, ex, ex_en, None))
 
     return rows
 
 
 def validate_rows(rows):
-    """Every seeded entry needs a translation, an example, and an example translation."""
+    """Everything a seeded entry must satisfy before any of it is inserted."""
     problems = []
-    seen = set()
-    section_of_topic = {}
+    sections = topic_sections()
+    seen_per_topic = {}
 
-    for section, topic, sv, _pos, en, _note, ex, ex_en, _fn in rows:
-        where = f"{section} / {topic} / {sv}"
+    for section in sections.values():
+        if section not in SECTIONS:
+            problems.append(f"unknown section {section!r}")
+
+    for topics, sv, _pos, en, _note, ex, ex_en, _fn in rows:
+        where = f"{'/'.join(topics)} / {sv}"
+
         for label, value in (("translation", en), ("example", ex), ("example translation", ex_en)):
             if not (value or "").strip():
                 problems.append(f"{where}: missing {label}")
 
-        if section not in SECTIONS:
-            problems.append(f"{where}: unknown section {section!r}")
+        if not topics:
+            problems.append(f"{where}: no topic")
 
-        # A topic belongs to exactly one section — it is a property of the
-        # topic, not of the word. Splitting one across sections would put the
-        # same topic under two headings on the index.
-        first = section_of_topic.setdefault(topic, section)
-        if first != section:
-            problems.append(f"{where}: topic also filed under {first!r}")
+        for topic in topics:
+            if topic in RETIRED_BUCKETS:
+                problems.append(f"{where}: uses retired bucket {topic!r}")
+            elif topic not in sections:
+                problems.append(f"{where}: topic {topic!r} has no section")
 
-        key = (topic, sv)
-        if key in seen:
-            problems.append(f"{where}: duplicate entry")
-        seen.add(key)
+            # The same word must not appear twice inside one topic.
+            if sv in seen_per_topic.setdefault(topic, set()):
+                problems.append(f"{where}: duplicated inside {topic!r}")
+            seen_per_topic[topic].add(sv)
 
     if problems:
         raise ValueError("Seed data problems:\n  " + "\n  ".join(problems))
@@ -1085,8 +1219,12 @@ def validate_rows(rows):
 def seed_database(conn):
     rows = seed_rows()
     validate_rows(rows)
-    for row in rows:
-        insert_entry(conn, *row, is_custom=0)
+
+    for topic, section in topic_sections().items():
+        register_topic(conn, topic, section)
+
+    for topics, sv, pos, en, note, ex, ex_en, fn in rows:
+        insert_entry(conn, topics, sv, pos, en, note, ex, ex_en, fn, is_custom=0)
 
 
 def ensure_seeded(conn):
