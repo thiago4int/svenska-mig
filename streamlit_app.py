@@ -2,30 +2,19 @@ import random
 
 import streamlit as st
 
-from db import distinct_values, fetch_entries, get_connection, insert_entry, topic_counts
+from db import SECTIONS, fetch_entries, get_connection, insert_entry, topic_counts
 from seed import ensure_seeded
 
-TABS = [
-    "Workplace & Tech",
-    "Social & Small Talk",
-    "Home & Daily Life",
-    "Grammar & V2 Anchors",
-    "Questions & Prepositions",
-    "Tutor Toolkit",
-]
-
-# Navigation is a flat index of topics, not a tab -> category drilldown: with
-# ~45 topics everything fits on one screen, so a tree only adds a step where
-# you have to know the answer (which tab a topic sits under) before you can
-# ask the question. The old tabs survive only as the three headings the index
-# is grouped under, which is the distinction that actually matters when you're
-# choosing: something to talk about, something to look up, or something to say
-# when the conversation stalls.
-TOPIC_GROUPS = [
-    ("Topics & situations", ["Workplace & Tech", "Social & Small Talk", "Home & Daily Life"]),
-    ("Grammar & reference", ["Grammar & V2 Anchors", "Questions & Prepositions"]),
-    ("Conversation toolkit", ["Tutor Toolkit"]),
-]
+# Navigation is a flat index of topics. A topic is the only thing you pick, and
+# the only thing above it is the section — one of three headings answering "why
+# am I looking at this?": something to talk about, something to look up, or
+# something to say when the conversation stalls. A section is a property of the
+# topic, never of a word, so it is never asked about an individual entry.
+SECTION_BLURBS = {
+    "Topics & situations": "Things to talk about",
+    "Grammar & reference": "Things to look up",
+    "Conversation toolkit": "Things to say when you're stuck",
+}
 
 FN_LABELS = {
     "position-1": "Position-1 anchors (fronted time/place adverbials)",
@@ -56,8 +45,8 @@ conn = get_db()
 
 
 def all_topics():
-    """{topic: (tab, count)} for every topic in the database."""
-    return {row["category"]: (row["tab"], row["n"]) for row in topic_counts(conn)}
+    """{topic: (section, count)} for every topic in the database."""
+    return {row["category"]: (row["section"], row["n"]) for row in topic_counts(conn)}
 
 
 def open_topic(topic):
@@ -74,7 +63,7 @@ def close_topic():
 
 
 def current_topic(topics):
-    """The open topic, seeded from ?topic= so links and browser back work."""
+    """The open topic, seeded from ?topic= so links work."""
     if "topic" not in st.session_state:
         st.session_state.topic = st.query_params.get("topic")
 
@@ -86,7 +75,7 @@ def topic_buttons(names, topics, key_prefix):
     """A grid of topic buttons, each labelled with its entry count."""
     columns = st.columns(INDEX_COLUMNS)
     for i, name in enumerate(names):
-        _tab, count = topics[name]
+        _section, count = topics[name]
         columns[i % INDEX_COLUMNS].button(
             f"{name}  ·  {count}",
             key=f"{key_prefix}_{name}",
@@ -134,35 +123,38 @@ def render_index(topics):
         topic_buttons(recents, topics, "recent")
         st.divider()
 
-    for heading, tabs in TOPIC_GROUPS:
-        names = sorted(name for name, (tab, _n) in topics.items() if tab in tabs)
+    for section in SECTIONS:
+        names = sorted(name for name, (sec, _n) in topics.items() if sec == section)
         if not names:
             continue
         total = sum(topics[name][1] for name in names)
-        st.subheader(heading)
-        st.caption(f"{len(names)} topics · {total} entries")
+        st.subheader(section)
+        st.caption(f"{SECTION_BLURBS[section]} · {len(names)} topics · {total} entries")
         topic_buttons(names, topics, "index")
         st.write("")
 
 
 def render_topic(topic, topics):
-    tab, count = topics[topic]
+    section, count = topics[topic]
     st.button("← All topics", on_click=close_topic)
     st.subheader(topic)
-    st.caption(f"{tab} · {count} entr{'y' if count == 1 else 'ies'}")
+    st.caption(f"{section} · {count} entr{'y' if count == 1 else 'ies'}")
 
-    with st.expander("Refine"):
-        pos_choice = st.multiselect(
-            "Part of speech", distinct_values(conn, "pos", tab=tab), key="topic_pos"
-        )
+    entries = fetch_entries(conn, categories=[topic])
 
-    entries = fetch_entries(conn, categories=[topic], pos_list=pos_choice or None)
+    # Offer only the parts of speech that actually occur in this topic.
+    pos_options = sorted({e["pos"] for e in entries if e["pos"]})
+    if len(pos_options) > 1:
+        with st.expander("Refine"):
+            chosen = st.multiselect("Part of speech", pos_options, key=f"pos_{topic}")
+        if chosen:
+            entries = [e for e in entries if e["pos"] in chosen]
+
     if not entries:
         st.info("No entries match the current filters.")
         return
 
-    # The V2 anchors are only useful grouped by what triggers the inversion,
-    # which used to need a toggle. As its own topic it can just always group.
+    # The V2 anchors are only useful grouped by what triggers the inversion.
     if topic == ANCHOR_TOPIC:
         groups = {}
         for e in entries:
@@ -200,7 +192,7 @@ def render_search(search, topics):
         render_entry(e)
 
 
-def browse_tab():
+def browse_view():
     topics = all_topics()
     search = st.text_input(
         "Search",
@@ -219,7 +211,7 @@ def browse_tab():
         render_index(topics)
 
 
-def improv_weave_tab():
+def improv_weave_view():
     st.write(
         "Pull a random mini-set of entries across all topics for a spontaneous "
         "mini-monologue drill. The set stays put until you regenerate it."
@@ -249,7 +241,7 @@ def improv_weave_tab():
         render_entry(e)
 
 
-def reverse_drill_tab():
+def reverse_drill_view():
     st.write(
         "English shown first — say the Swedish aloud, then reveal to check "
         "yourself. Active recall beats passive browsing."
@@ -304,27 +296,47 @@ def reverse_drill_tab():
         st.rerun()
 
 
-def add_entry_tab():
+def add_entry_view():
     st.write(
         "Add your own entry — during or right after a tutor session works "
         "well, while the correction is still fresh. It's tagged 🆕 so it "
         "stays distinguishable from the seed set."
     )
 
-    existing_topics = sorted(all_topics())
+    flash = st.session_state.pop("add_flash", None)
+    if flash:
+        st.success(flash)
+
+    topics = all_topics()
+
+    # Outside the form so choosing a brand-new topic can reveal the one extra
+    # question it needs. Picking an existing topic asks nothing further: the
+    # section comes with the topic.
+    topic = st.selectbox(
+        "Topic",
+        sorted(topics),
+        index=None,
+        accept_new_options=True,
+        placeholder="Pick a topic, or type a new one",
+        key="add_topic",
+    )
+
+    if topic and topic not in topics:
+        section = st.radio(
+            f"“{topic}” is a new topic — where does it belong?",
+            SECTIONS,
+            captions=[SECTION_BLURBS[s] for s in SECTIONS],
+            key="add_section",
+        )
+    else:
+        section = topics[topic][0] if topic else None
+        if topic:
+            st.caption(f"Section: {section}")
 
     with st.form("add_entry_form", clear_on_submit=True):
-        tab = st.selectbox("Group", TABS)
-        category = st.selectbox(
-            "Topic",
-            existing_topics,
-            index=None,
-            accept_new_options=True,
-            placeholder="Pick a topic or type a new one",
-        )
         sv = st.text_input("Swedish")
-        pos = st.text_input("Part of speech")
         en = st.text_input("English")
+        pos = st.text_input("Part of speech")
         note = st.text_input("Note (forms, etc.)")
         ex = st.text_area("Example sentence (Swedish)")
         ex_en = st.text_area("Example sentence (English)")
@@ -336,13 +348,13 @@ def add_entry_tab():
         submitted = st.form_submit_button("Add entry")
 
         if submitted:
-            if not sv or not en or not category:
-                st.error("Swedish, English, and Topic are required.")
+            if not topic or not sv or not en:
+                st.error("Topic, Swedish, and English are required.")
             else:
                 insert_entry(
                     conn,
-                    tab,
-                    category,
+                    section,
+                    topic,
                     sv,
                     pos or None,
                     en,
@@ -353,8 +365,7 @@ def add_entry_tab():
                     is_custom=1,
                     mistake_count=1 if got_wrong else 0,
                 )
-                st.cache_data.clear()
-                st.success(f"Added “{sv}” → “{en}”.")
+                st.session_state.add_flash = f"Added “{sv}” → “{en}” to {topic}."
                 st.rerun()
 
 
@@ -362,10 +373,10 @@ st.title("🇸🇪 Svenska")
 
 browse, weave, reverse, add = st.tabs(["Browse", "Improv Weave", "Reverse Drill", "Add Entry"])
 with browse:
-    browse_tab()
+    browse_view()
 with weave:
-    improv_weave_tab()
+    improv_weave_view()
 with reverse:
-    reverse_drill_tab()
+    reverse_drill_view()
 with add:
-    add_entry_tab()
+    add_entry_view()

@@ -45,8 +45,8 @@ Everything lives in one `entries` table (see `db.py`):
 
 | Column      | Meaning                                                              |
 |-------------|-----------------------------------------------------------------------|
-| `tab`       | One of six groups; only used to sort topics under the index's three headings |
-| `category`  | The topic — the unit you navigate by, e.g. "Numbers & Counting"       |
+| `section`   | One of three: Topics & situations / Grammar & reference / Conversation toolkit. A property of the topic, never asked about a word |
+| `category`  | The topic — the only thing you navigate by, e.g. "Numbers & Counting" |
 | `sv`        | Swedish word/phrase                                                   |
 | `pos`       | Part of speech                                                        |
 | `en`        | English translation                                                   |
@@ -60,7 +60,9 @@ Everything lives in one `entries` table (see `db.py`):
 **Every seed entry carries an English translation, a Swedish example sentence,
 and an English translation of that example.** `seed.validate_rows()` enforces
 this before anything is inserted — it also rejects duplicate
-`(tab, category, sv)` rows — so a seed entry can never ship half-filled.
+`(topic, sv)` rows, and rejects a topic filed under two different sections —
+so a seed entry can never ship half-filled or a topic appear under two
+headings.
 
 A second table, `meta`, holds a single `seed_version` key used for reseeding
 (below).
@@ -79,9 +81,9 @@ re-inserts them, so **entries you added through Add Entry survive a deploy**.
 Bump `SEED_VERSION` whenever you change seed content, and the deployed app
 picks it up on its next restart with no manual database surgery.
 
-Seeding migrates `words/svenska.csv` into the tab/category structure and adds
+Seeding migrates `words/svenska.csv` into the section/topic structure and adds
 hand-written content (V2 anchors, word-order rules and modals, the whole
-Questions & Prepositions tab, Workplace & Tech vocab, Tutor Toolkit phrases)
+questions and prepositions topics, workplace vocab, tutor-toolkit phrases)
 that has no analog in the original CSV.
 
 `db.py` also runs a small migration on every connection (`PRAGMA table_info`
@@ -121,18 +123,24 @@ Open **http://localhost:8501**.
 ## Features
 
 ### Navigation
-The Browse tab opens on a **topic index**: all 45 topics on one screen as
-buttons with their entry counts, one click to open. There is no tab -> category
-drilldown, because with 45 topics a tree only adds a step where you have to
-know which tab a topic lives under before you can pick it.
+Browse opens on a **topic index**: every topic on one screen as a button with
+its entry count, one click to open. A **topic is the only thing you ever pick.**
+There is no drilldown, because with ~45 topics a tree only adds a step where you
+must know the answer before you can ask the question.
 
-The index is grouped under three headings, which is the distinction that
-actually matters when choosing:
+The index is grouped under three **sections**, which say why you'd be looking:
 
 - **Topics & situations** (26 topics, 307 entries) — things to talk about.
 - **Grammar & reference** (15 topics, 194 entries) — things to look up.
-- **Conversation toolkit** (4 topics, 26 entries) — things to say when the
-  conversation stalls.
+- **Conversation toolkit** (4 topics, 26 entries) — things to say when you're
+  stuck.
+
+A section belongs to the *topic*, not to a word, so the app never asks which
+section a word is in — the only time you choose one is when you invent a brand
+new topic. (The app used to have six "tabs" carried over from the source
+spreadsheet; a tab was not a property of a word, described nothing, and had to
+be guessed before you could reach a category. `db.py` migrates the column away
+on first connection.)
 
 - **Search runs across everything** — no topic has to be chosen first. It
   matches Swedish, English, topic name, notes, and example sentences in both
@@ -141,14 +149,18 @@ actually matters when choosing:
   can be bookmarked or linked (`/?topic=Prepositions+of+Time`). Streamlit
   rewrites the URL in place rather than pushing history, so the browser back
   button does not step back through topics; use the "← All topics" button.
+- **Add Entry is topic-first** — pick the topic and nothing else is asked; the
+  section comes with it. Type a topic that doesn't exist yet and the app asks
+  the one question it can't infer: which of the three sections it belongs in.
 - **Recent topics** appear as a row at the top of the index once you have
   opened a few (per browser session).
 - **Refine** — the part-of-speech filter lives in a collapsed expander inside a
-  topic, off the primary path.
+  topic, offering only the parts of speech that occur in that topic, and is
+  hidden entirely when a topic has just one.
 - The **V2 Inversion Anchors** topic always groups itself by what triggers the
   inversion (position-1, contrast, subordinating, modal). The old "V2 Inversion
   anchors only" toggle is gone: it existed to isolate the anchors from the rest
-  of the grammar tab, and as its own topic they are already isolated.
+  of the grammar entries, and as its own topic they are already isolated.
 
 ### Practice
 - **Improv Weave** — pulls a random 3–5 entries from across all topics for a
@@ -212,7 +224,8 @@ Two places, depending on where the entry belongs:
   `Example` and `Example (English)`.
 - **`seed.py`** — the themed hand-written lists (`QUESTIONS_PREPOSITIONS`,
   `WORKPLACE_TECH_EXTRA`, `HOME_DAILY_LIFE_EXTRA`, `SOCIAL_SMALL_TALK_EXTRA`,
-  `GRAMMAR_EXTRA`, `V2_ANCHORS`, `COMPARISONS`, `TUTOR_TOOLKIT`). Each row is
+  `GRAMMAR_EXTRA`, `V2_ANCHORS`, `COMPARISONS`, `TUTOR_TOOLKIT`), each attached
+  to a section in `seed_rows()`. Each row is
   `(category, sv, pos, en, note, ex, ex_en)` — `V2_ANCHORS` also carries its
   `fn` group, and `COMPARISONS` has no category column since it's a single
   category.
@@ -224,8 +237,9 @@ next start. Check your work without launching the app:
 python3 -c "from seed import seed_rows, validate_rows; r = seed_rows(); validate_rows(r); print(len(r), 'rows OK')"
 ```
 
-A missing example, a missing translation, or a duplicated
-`(tab, category, sv)` raises `ValueError` with every offending entry listed.
+A missing example, a missing translation, a duplicated `(topic, sv)`, an
+unknown section, or a topic split across two sections raises `ValueError` with
+every offending entry listed.
 
 ## Regenerating the seed data
 

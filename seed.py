@@ -1,46 +1,47 @@
 import csv
 from pathlib import Path
 
-from db import delete_seed_entries, get_meta, insert_entry, is_empty, set_meta
+from db import SECTIONS, delete_seed_entries, get_meta, insert_entry, is_empty, set_meta
 
 CSV_PATH = Path(__file__).parent / "words" / "svenska.csv"
 
 # Bumped whenever the seed content below changes. A deployed app compares this
 # against the value stored in the database and reseeds when they differ, so new
 # vocabulary shows up on deploy without anyone deleting svenska.db by hand.
-SEED_VERSION = "2"
+SEED_VERSION = "3"
 
-# Best-fit mapping from the old flashcard categories to the new tab/category
-# structure. "Weather, family & professions" is split by word below since it
-# straddles three different tabs.
+# Best-fit mapping from the old flashcard categories onto (section, topic).
+# A section is one of the three headings on the index — the only grouping above
+# the topic that the app has. "Weather, family & professions" is split by word
+# below since it straddles three different topics.
 CATEGORY_MAP = {
-    "Greetings and pleasantries": ("Social & Small Talk", "Greetings & Pleasantries"),
-    "People and pronouns": ("Grammar & V2 Anchors", "Pronouns & People"),
-    "Everyday verbs": ("Home & Daily Life", "Everyday Verbs"),
-    "Food and drink": ("Home & Daily Life", "Food & Drink"),
-    "Time and days": ("Home & Daily Life", "Time & Days"),
-    "Numbers and counting": ("Home & Daily Life", "Numbers & Counting"),
-    "Places and directions": ("Home & Daily Life", "Places & Directions"),
-    "Colors and adjectives": ("Home & Daily Life", "Colors & Adjectives"),
-    "Question words & prepositions": ("Questions & Prepositions", "Question Words"),
-    "More adjectives": ("Home & Daily Life", "More Adjectives"),
-    "Nature and seasons": ("Home & Daily Life", "Nature & Seasons"),
-    "Feelings and emotions": ("Social & Small Talk", "Feelings & Emotions"),
-    "More verbs": ("Home & Daily Life", "More Verbs"),
-    "Conjunctions and connectors": ("Grammar & V2 Anchors", "Conjunctions & Connectors"),
-    "Pronouns and articles": ("Grammar & V2 Anchors", "Pronouns & Articles"),
-    "Health and body": ("Home & Daily Life", "Health & Body"),
-    "Home and objects": ("Home & Daily Life", "Home & Objects"),
-    "Adverbs and function words": ("Grammar & V2 Anchors", "Adverbs & Function Words"),
+    "Greetings and pleasantries": ("Topics & situations", "Greetings & Pleasantries"),
+    "People and pronouns": ("Grammar & reference", "Pronouns & People"),
+    "Everyday verbs": ("Topics & situations", "Everyday Verbs"),
+    "Food and drink": ("Topics & situations", "Food & Drink"),
+    "Time and days": ("Topics & situations", "Time & Days"),
+    "Numbers and counting": ("Topics & situations", "Numbers & Counting"),
+    "Places and directions": ("Topics & situations", "Places & Directions"),
+    "Colors and adjectives": ("Topics & situations", "Colors & Adjectives"),
+    "Question words & prepositions": ("Grammar & reference", "Question Words"),
+    "More adjectives": ("Topics & situations", "More Adjectives"),
+    "Nature and seasons": ("Topics & situations", "Nature & Seasons"),
+    "Feelings and emotions": ("Topics & situations", "Feelings & Emotions"),
+    "More verbs": ("Topics & situations", "More Verbs"),
+    "Conjunctions and connectors": ("Grammar & reference", "Conjunctions & Connectors"),
+    "Pronouns and articles": ("Grammar & reference", "Pronouns & Articles"),
+    "Health and body": ("Topics & situations", "Health & Body"),
+    "Home and objects": ("Topics & situations", "Home & Objects"),
+    "Adverbs and function words": ("Grammar & reference", "Adverbs & Function Words"),
 }
 
 PROFESSION_WORDS = {"Lärare", "Läkare", "Student", "Kock", "Polis"}
 TECH_WORDS = {"Automatiserar"}
 
-# Prepositions now have their own tab, so the CSV rows that carry them — both
-# the ones filed under "Question words & prepositions" and the handful scattered
-# through other categories — are re-homed by (csv category, Swedish word) into
-# the function-based categories used in the Questions & Prepositions tab.
+# Prepositions get function-based topics of their own, so the CSV rows that
+# carry them — both the ones filed under "Question words & prepositions" and the
+# handful scattered through other categories — are re-homed by (csv category,
+# Swedish word) into those topics.
 PREPOSITION_REHOME = {
     ("Question words & prepositions", "I"): "Prepositions of Place",
     ("Question words & prepositions", "På"): "Prepositions of Place",
@@ -183,7 +184,7 @@ GRAMMAR_EXTRA = [
 ]
 
 # ---------------------------------------------------------------------------
-# Questions & Prepositions tab
+# Questions & prepositions topics
 # ---------------------------------------------------------------------------
 
 # The CSV covers vad/var/när/varför/hur/vem/vilken/hur mycket/hur många; these
@@ -921,7 +922,7 @@ COMPARISONS = [
 ]
 
 # Hand-written Tutor Toolkit: conversation-management phrases for keeping a
-# tutoring session in Swedish even when you need help. New tab, no analog in
+# tutoring session in Swedish even when you need help. No analog in
 # the original CSV.
 # (category, sv, pos, en, note, ex, ex_en)
 TUTOR_TOOLKIT = [
@@ -993,7 +994,7 @@ def _split_note(forms):
 
 
 def _csv_rows():
-    """Migrate words/svenska.csv into (tab, category, sv, pos, en, note, ex, ex_en, fn) rows."""
+    """Migrate words/svenska.csv into (section, topic, sv, pos, en, note, ex, ex_en, fn) rows."""
     rows = []
     with CSV_PATH.open(encoding="utf-8") as f:
         for row in csv.DictReader(f):
@@ -1007,45 +1008,45 @@ def _csv_rows():
 
             rehomed = PREPOSITION_REHOME.get((category, sv))
             if rehomed:
-                tab, new_category = "Questions & Prepositions", rehomed
+                section, new_category = "Grammar & reference", rehomed
             elif category == "Weather, family & professions":
                 if sv in PROFESSION_WORDS:
-                    tab, new_category = "Workplace & Tech", "Professions"
+                    section, new_category = "Topics & situations", "Professions"
                 else:
-                    tab, new_category = "Social & Small Talk", "Family & Weather Chat"
+                    section, new_category = "Topics & situations", "Family & Weather Chat"
             elif sv in TECH_WORDS:
-                tab, new_category = "Workplace & Tech", "Tech Verbs"
+                section, new_category = "Topics & situations", "Tech Verbs"
             else:
-                tab, new_category = CATEGORY_MAP[category]
+                section, new_category = CATEGORY_MAP[category]
 
-            rows.append((tab, new_category, sv, pos, en, note, ex, ex_en, None))
+            rows.append((section, new_category, sv, pos, en, note, ex, ex_en, None))
     return rows
 
 
 def seed_rows():
-    """Every row the seed inserts, as (tab, category, sv, pos, en, note, ex, ex_en, fn)."""
+    """Every row the seed inserts, as (section, topic, sv, pos, en, note, ex, ex_en, fn)."""
     rows = _csv_rows()
 
     for sv, pos, en, fn, note, ex, ex_en in V2_ANCHORS:
-        rows.append(("Grammar & V2 Anchors", "V2 Inversion Anchors", sv, pos, en, note, ex, ex_en, fn))
+        rows.append(("Grammar & reference", "V2 Inversion Anchors", sv, pos, en, note, ex, ex_en, fn))
 
     for sv, pos, en, note, ex, ex_en in COMPARISONS:
         rows.append(
-            ("Grammar & V2 Anchors", "Comparatives & Comparisons", sv, pos, en, note, ex, ex_en, None)
+            ("Grammar & reference", "Comparatives & Comparisons", sv, pos, en, note, ex, ex_en, None)
         )
 
     grouped = [
-        ("Grammar & V2 Anchors", GRAMMAR_EXTRA),
-        ("Questions & Prepositions", QUESTIONS_PREPOSITIONS),
-        ("Workplace & Tech", WORKPLACE_TECH_EXTRA),
-        ("Home & Daily Life", HOME_DAILY_LIFE_EXTRA),
-        ("Home & Daily Life", PLACES_DIRECTIONS_EXTRA),
-        ("Social & Small Talk", SOCIAL_SMALL_TALK_EXTRA),
-        ("Tutor Toolkit", TUTOR_TOOLKIT),
+        ("Grammar & reference", GRAMMAR_EXTRA),
+        ("Grammar & reference", QUESTIONS_PREPOSITIONS),
+        ("Topics & situations", WORKPLACE_TECH_EXTRA),
+        ("Topics & situations", HOME_DAILY_LIFE_EXTRA),
+        ("Topics & situations", PLACES_DIRECTIONS_EXTRA),
+        ("Topics & situations", SOCIAL_SMALL_TALK_EXTRA),
+        ("Conversation toolkit", TUTOR_TOOLKIT),
     ]
-    for tab, group in grouped:
+    for section, group in grouped:
         for category, sv, pos, en, note, ex, ex_en in group:
-            rows.append((tab, category, sv, pos, en, note, ex, ex_en, None))
+            rows.append((section, category, sv, pos, en, note, ex, ex_en, None))
 
     return rows
 
@@ -1054,14 +1055,25 @@ def validate_rows(rows):
     """Every seeded entry needs a translation, an example, and an example translation."""
     problems = []
     seen = set()
+    section_of_topic = {}
 
-    for tab, category, sv, _pos, en, _note, ex, ex_en, _fn in rows:
-        where = f"{tab} / {category} / {sv}"
+    for section, topic, sv, _pos, en, _note, ex, ex_en, _fn in rows:
+        where = f"{section} / {topic} / {sv}"
         for label, value in (("translation", en), ("example", ex), ("example translation", ex_en)):
             if not (value or "").strip():
                 problems.append(f"{where}: missing {label}")
 
-        key = (tab, category, sv)
+        if section not in SECTIONS:
+            problems.append(f"{where}: unknown section {section!r}")
+
+        # A topic belongs to exactly one section — it is a property of the
+        # topic, not of the word. Splitting one across sections would put the
+        # same topic under two headings on the index.
+        first = section_of_topic.setdefault(topic, section)
+        if first != section:
+            problems.append(f"{where}: topic also filed under {first!r}")
+
+        key = (topic, sv)
         if key in seen:
             problems.append(f"{where}: duplicate entry")
         seen.add(key)
