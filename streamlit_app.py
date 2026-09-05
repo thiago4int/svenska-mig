@@ -2,7 +2,7 @@ import random
 
 import streamlit as st
 
-from db import distinct_values, fetch_entries, get_connection, insert_entry
+from db import distinct_values, fetch_entries, get_connection, insert_entry, topic_counts
 from seed import ensure_seeded
 
 TABS = [
@@ -14,6 +14,19 @@ TABS = [
     "Tutor Toolkit",
 ]
 
+# Navigation is a flat index of topics, not a tab -> category drilldown: with
+# ~45 topics everything fits on one screen, so a tree only adds a step where
+# you have to know the answer (which tab a topic sits under) before you can
+# ask the question. The old tabs survive only as the three headings the index
+# is grouped under, which is the distinction that actually matters when you're
+# choosing: something to talk about, something to look up, or something to say
+# when the conversation stalls.
+TOPIC_GROUPS = [
+    ("Topics & situations", ["Workplace & Tech", "Social & Small Talk", "Home & Daily Life"]),
+    ("Grammar & reference", ["Grammar & V2 Anchors", "Questions & Prepositions"]),
+    ("Conversation toolkit", ["Tutor Toolkit"]),
+]
+
 FN_LABELS = {
     "position-1": "Position-1 anchors (fronted time/place adverbials)",
     "contrast": "Contrast anchors",
@@ -21,6 +34,10 @@ FN_LABELS = {
     "modal": "Modal anchors",
 }
 FN_ORDER = ["position-1", "contrast", "subordinating", "modal"]
+
+ANCHOR_TOPIC = "V2 Inversion Anchors"
+INDEX_COLUMNS = 3
+MAX_RECENTS = 5
 
 st.set_page_config(page_title="Svenska", page_icon="🇸🇪", layout="centered")
 
@@ -33,6 +50,53 @@ def get_db():
 
 
 conn = get_db()
+
+
+# --- topic navigation -------------------------------------------------------
+
+
+def all_topics():
+    """{topic: (tab, count)} for every topic in the database."""
+    return {row["category"]: (row["tab"], row["n"]) for row in topic_counts(conn)}
+
+
+def open_topic(topic):
+    st.session_state.topic = topic
+    st.query_params["topic"] = topic
+
+    recents = [t for t in st.session_state.get("recents", []) if t != topic]
+    st.session_state.recents = [topic] + recents[: MAX_RECENTS - 1]
+
+
+def close_topic():
+    st.session_state.topic = None
+    st.query_params.pop("topic", None)
+
+
+def current_topic(topics):
+    """The open topic, seeded from ?topic= so links and browser back work."""
+    if "topic" not in st.session_state:
+        st.session_state.topic = st.query_params.get("topic")
+
+    topic = st.session_state.topic
+    return topic if topic in topics else None
+
+
+def topic_buttons(names, topics, key_prefix):
+    """A grid of topic buttons, each labelled with its entry count."""
+    columns = st.columns(INDEX_COLUMNS)
+    for i, name in enumerate(names):
+        _tab, count = topics[name]
+        columns[i % INDEX_COLUMNS].button(
+            f"{name}  ·  {count}",
+            key=f"{key_prefix}_{name}",
+            use_container_width=True,
+            on_click=open_topic,
+            args=(name,),
+        )
+
+
+# --- rendering --------------------------------------------------------------
 
 
 def render_entry(entry):
@@ -62,49 +126,44 @@ def render_entry(entry):
             st.caption(f"⚠️ Missed {entry['mistake_count']} {times}")
 
 
-def browse_tab():
-    search = st.text_input(
-        "Search",
-        placeholder="Search Swedish, English, category, notes, examples…",
-    )
+def render_index(topics):
+    """The landing screen: every topic at once, one click to open."""
+    recents = [t for t in st.session_state.get("recents", []) if t in topics]
+    if recents:
+        st.caption("Recent")
+        topic_buttons(recents, topics, "recent")
+        st.divider()
 
-    tab_choice = st.selectbox("Tab", ["All tabs"] + TABS, key="tab_choice")
+    for heading, tabs in TOPIC_GROUPS:
+        names = sorted(name for name, (tab, _n) in topics.items() if tab in tabs)
+        if not names:
+            continue
+        total = sum(topics[name][1] for name in names)
+        st.subheader(heading)
+        st.caption(f"{len(names)} topics · {total} entries")
+        topic_buttons(names, topics, "index")
+        st.write("")
 
-    # Landing on the Grammar & V2 Anchors tab defaults the toggle on, since
-    # that tab otherwise mixes the anchors in with plain grammar vocab. Stays
-    # manually overridable until the tab is changed again.
-    if st.session_state.get("_last_tab") != tab_choice:
-        st.session_state["anchors_only"] = tab_choice == "Grammar & V2 Anchors"
-        st.session_state["_last_tab"] = tab_choice
 
-    col1, col2 = st.columns(2)
-    with col1:
-        category_choice = st.multiselect(
-            "Category", distinct_values(conn, "category", tab=tab_choice)
-        )
-    with col2:
+def render_topic(topic, topics):
+    tab, count = topics[topic]
+    st.button("← All topics", on_click=close_topic)
+    st.subheader(topic)
+    st.caption(f"{tab} · {count} entr{'y' if count == 1 else 'ies'}")
+
+    with st.expander("Refine"):
         pos_choice = st.multiselect(
-            "Part of speech", distinct_values(conn, "pos", tab=tab_choice)
+            "Part of speech", distinct_values(conn, "pos", tab=tab), key="topic_pos"
         )
 
-    only_anchors = st.toggle("V2 Inversion anchors only", key="anchors_only")
-
-    entries = fetch_entries(
-        conn,
-        tab=tab_choice,
-        categories=category_choice or None,
-        pos_list=pos_choice or None,
-        search=search or None,
-        only_anchors=only_anchors,
-    )
-
-    st.caption(f"{len(entries)} entr{'y' if len(entries) == 1 else 'ies'}")
-
+    entries = fetch_entries(conn, categories=[topic], pos_list=pos_choice or None)
     if not entries:
         st.info("No entries match the current filters.")
         return
 
-    if only_anchors:
+    # The V2 anchors are only useful grouped by what triggers the inversion,
+    # which used to need a toggle. As its own topic it can just always group.
+    if topic == ANCHOR_TOPIC:
         groups = {}
         for e in entries:
             groups.setdefault(e["fn"], []).append(e)
@@ -113,22 +172,56 @@ def browse_tab():
                 st.subheader(FN_LABELS[fn_key])
                 for e in groups[fn_key]:
                     render_entry(e)
+        return
+
+    for e in entries:
+        render_entry(e)
+
+
+def render_search(search, topics):
+    """Search runs across everything — no topic has to be chosen first."""
+    matching_topics = sorted(name for name in topics if search.lower() in name.lower())
+    if matching_topics:
+        st.caption("Matching topics")
+        topic_buttons(matching_topics, topics, "found")
+        st.divider()
+
+    entries = fetch_entries(conn, search=search)
+    st.caption(f"{len(entries)} entr{'y' if len(entries) == 1 else 'ies'}")
+    if not entries:
+        st.info("Nothing matches that search.")
+        return
+
+    current_category = None
+    for e in entries:
+        if e["category"] != current_category:
+            st.subheader(e["category"])
+            current_category = e["category"]
+        render_entry(e)
+
+
+def browse_tab():
+    topics = all_topics()
+    search = st.text_input(
+        "Search",
+        placeholder="Search Swedish, English, topic, notes, examples…",
+        key="search",
+    )
+
+    if search:
+        render_search(search, topics)
+        return
+
+    topic = current_topic(topics)
+    if topic:
+        render_topic(topic, topics)
     else:
-        # Entries arrive sorted by tab, category, sv — print a heading
-        # whenever either changes so categories stay visibly grouped,
-        # the way the old word-list view did.
-        current_tab, current_category = None, None
-        for e in entries:
-            if e["tab"] != current_tab or e["category"] != current_category:
-                heading = e["category"] if tab_choice != "All tabs" else f"{e['tab']} · {e['category']}"
-                st.subheader(heading)
-                current_tab, current_category = e["tab"], e["category"]
-            render_entry(e)
+        render_index(topics)
 
 
 def improv_weave_tab():
     st.write(
-        "Pull a random mini-set of entries across all tabs for a spontaneous "
+        "Pull a random mini-set of entries across all topics for a spontaneous "
         "mini-monologue drill. The set stays put until you regenerate it."
     )
 
@@ -162,12 +255,15 @@ def reverse_drill_tab():
         "yourself. Active recall beats passive browsing."
     )
 
-    tab_choice = st.selectbox("Tab", ["All tabs"] + TABS, key="reverse_tab")
-    category_choice = st.multiselect(
-        "Category", distinct_values(conn, "category", tab=tab_choice), key="reverse_category"
+    topics = all_topics()
+    chosen = st.multiselect(
+        "Topics",
+        sorted(topics),
+        key="reverse_topics",
+        placeholder="All topics",
     )
 
-    pool = fetch_entries(conn, tab=tab_choice, categories=category_choice or None)
+    pool = fetch_entries(conn, categories=chosen or None)
     if not pool:
         st.info("No entries match these filters.")
         return
@@ -193,6 +289,7 @@ def reverse_drill_tab():
             if current["is_custom"]:
                 title += " 🆕"
             st.markdown(title)
+            st.caption(current["category"])
             if current["note"]:
                 st.caption(f"Forms: {current['note']}")
             if current["ex"]:
@@ -214,9 +311,17 @@ def add_entry_tab():
         "stays distinguishable from the seed set."
     )
 
+    existing_topics = sorted(all_topics())
+
     with st.form("add_entry_form", clear_on_submit=True):
-        tab = st.selectbox("Tab", TABS)
-        category = st.text_input("Category")
+        tab = st.selectbox("Group", TABS)
+        category = st.selectbox(
+            "Topic",
+            existing_topics,
+            index=None,
+            accept_new_options=True,
+            placeholder="Pick a topic or type a new one",
+        )
         sv = st.text_input("Swedish")
         pos = st.text_input("Part of speech")
         en = st.text_input("English")
@@ -224,7 +329,7 @@ def add_entry_tab():
         ex = st.text_area("Example sentence (Swedish)")
         ex_en = st.text_area("Example sentence (English)")
         fn = st.selectbox(
-            "V2 function group (only relevant for Grammar & V2 Anchors)",
+            "V2 function group (only relevant for V2 Inversion Anchors)",
             ["", "position-1", "contrast", "subordinating", "modal"],
         )
         got_wrong = st.checkbox("I got this wrong (mark for review)")
@@ -232,7 +337,7 @@ def add_entry_tab():
 
         if submitted:
             if not sv or not en or not category:
-                st.error("Swedish, English, and Category are required.")
+                st.error("Swedish, English, and Topic are required.")
             else:
                 insert_entry(
                     conn,

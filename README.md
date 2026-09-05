@@ -1,7 +1,7 @@
 # Svenska 🇸🇪
 
-A personal Swedish vocabulary practice app: search and filter a growing word
-set, drill sentence starters that trigger V2 word-order inversion, look up the
+A personal Swedish vocabulary practice app: pick a topic off a single index,
+drill sentence starters that trigger V2 word-order inversion, look up the
 full question-word and preposition inventory, improvise mini-monologues from
 randomly woven vocabulary, and run active-recall drills against yourself.
 
@@ -20,7 +20,7 @@ translation of that example — enforced by seed validation, not by convention.
 
 ```
 .
-├── streamlit_app.py     # Streamlit UI: Browse / Improv Weave / Reverse Drill / Add Entry tabs
+├── streamlit_app.py     # Streamlit UI: topic index + Improv Weave / Reverse Drill / Add Entry
 ├── db.py                # SQLite connection, schema, query helpers
 ├── seed.py              # One-time seed: migrates words/svenska.csv + hand-written content
 ├── requirements.txt     # Python dependencies (Streamlit)
@@ -45,8 +45,8 @@ Everything lives in one `entries` table (see `db.py`):
 
 | Column      | Meaning                                                              |
 |-------------|-----------------------------------------------------------------------|
-| `tab`       | One of the six top-level tabs (see Features)                         |
-| `category`  | Sub-grouping within a tab, e.g. "Numbers & Counting"                  |
+| `tab`       | One of six groups; only used to sort topics under the index's three headings |
+| `category`  | The topic — the unit you navigate by, e.g. "Numbers & Counting"       |
 | `sv`        | Swedish word/phrase                                                   |
 | `pos`       | Part of speech                                                        |
 | `en`        | English translation                                                   |
@@ -120,39 +120,42 @@ Open **http://localhost:8501**.
 
 ## Features
 
-### Filtering & search
-- **Multi-field live search** — matches across Swedish, English, category,
-  notes, and example sentences in both languages.
-- **Tab filter** — Workplace & Tech / Social & Small Talk / Home & Daily
-  Life / Grammar & V2 Anchors / Questions & Prepositions / Tutor Toolkit.
-- **Category filter** — scoped to whichever tab is currently selected.
-- **Part-of-speech filter**.
-- **V2 Inversion toggle** — isolates just the sentence-starter anchors,
-  grouped by function (position-1, contrast, subordinating, modal).
-  Automatically switches on when you land on the Grammar & V2 Anchors tab
-  (since that tab otherwise mixes anchors with plain grammar vocab); you can
-  flip it off manually to see the rest of that tab.
-- Results are grouped under category headings as you browse, so it's easy to
-  see where you are in the word list.
-- The **Questions & Prepositions** tab is the reference half of the app: the
-  full question-word inventory (vad / vem / vems / vilken / var / vart /
-  varifrån / när / varför / hur and the "hur …" family), the question
-  patterns that go with them (yes/no inversion, negated questions, tag
-  questions, indirect questions), and prepositions grouped by what they
-  actually do — place, time, movement & direction, and everything else —
-  plus the verbs that lock to a fixed preposition (`vänta på`, `bero på`,
-  `längta efter`, …).
-- The **Tutor Toolkit** tab is functional rather than topical: phrases for
-  managing a live conversation (Clarification, Repair & Save the
-  Conversation, Meta-language, Polite Feedback) rather than vocabulary about
-  a subject.
+### Navigation
+The Browse tab opens on a **topic index**: all 45 topics on one screen as
+buttons with their entry counts, one click to open. There is no tab -> category
+drilldown, because with 45 topics a tree only adds a step where you have to
+know which tab a topic lives under before you can pick it.
+
+The index is grouped under three headings, which is the distinction that
+actually matters when choosing:
+
+- **Topics & situations** (26 topics, 307 entries) — things to talk about.
+- **Grammar & reference** (15 topics, 194 entries) — things to look up.
+- **Conversation toolkit** (4 topics, 26 entries) — things to say when the
+  conversation stalls.
+
+- **Search runs across everything** — no topic has to be chosen first. It
+  matches Swedish, English, topic name, notes, and example sentences in both
+  languages, and surfaces matching *topics* as jump buttons above the results.
+- **Topics are URL-addressable** — opening one sets `?topic=<name>`, so a topic
+  can be bookmarked or linked (`/?topic=Prepositions+of+Time`). Streamlit
+  rewrites the URL in place rather than pushing history, so the browser back
+  button does not step back through topics; use the "← All topics" button.
+- **Recent topics** appear as a row at the top of the index once you have
+  opened a few (per browser session).
+- **Refine** — the part-of-speech filter lives in a collapsed expander inside a
+  topic, off the primary path.
+- The **V2 Inversion Anchors** topic always groups itself by what triggers the
+  inversion (position-1, contrast, subordinating, modal). The old "V2 Inversion
+  anchors only" toggle is gone: it existed to isolate the anchors from the rest
+  of the grammar tab, and as its own topic they are already isolated.
 
 ### Practice
-- **Improv Weave** — pulls a random 3–5 entries from across all tabs for a
+- **Improv Weave** — pulls a random 3–5 entries from across all topics for a
   spontaneous mini-monologue drill. The set stays in place until you hit
   "Generate weave" again.
-- **Reverse Drill** — shows the English side first (optionally filtered by
-  tab/category); say the Swedish aloud, then hit Reveal to check yourself and
+- **Reverse Drill** — shows the English side first (optionally narrowed to
+  one or more topics); say the Swedish aloud, then hit Reveal to check yourself and
   see the example sentence with its translation. "Next card" pulls a new
   random entry from the filtered pool. Built for active recall rather than
   passive browsing.

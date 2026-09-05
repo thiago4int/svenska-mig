@@ -123,3 +123,10 @@ def distinct_values(conn, column, tab=None):
         params.append(tab)
     query += f" ORDER BY {column}"
     return [row[0] for row in conn.execute(query, params).fetchall()]
+
+
+def topic_counts(conn):
+    """Every topic (category) with its tab and entry count, for the topic index."""
+    return conn.execute(
+        "SELECT tab, category, COUNT(*) AS n FROM entries GROUP BY tab, category ORDER BY category"
+    ).fetchall()
