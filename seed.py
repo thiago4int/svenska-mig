@@ -16,7 +16,7 @@ CSV_PATH = Path(__file__).parent / "words" / "svenska.csv"
 # Bumped whenever the seed content below changes. A deployed app compares this
 # against the value stored in the database and reseeds when they differ, so new
 # vocabulary shows up on deploy without anyone deleting svenska.db by hand.
-SEED_VERSION = "4"
+SEED_VERSION = "5"
 
 # Best-fit mapping from the old flashcard categories onto (section, topic).
 # A section is one of the three headings on the index — the only grouping above
@@ -1010,6 +1010,168 @@ COMPARISONS = [
      "Ju mer jag övar, desto bättre blir jag.", "The more I practise, the better I get."),
 ]
 
+
+# Negation had almost nothing: `inte`, `ingen`, and a few fixed phrases. It is
+# one of the first things you need in a real conversation — "det är inte lätt",
+# "jag gillar inte det här" — so it gets its own topic, with the placement rules
+# cross-tagged in from Word Order Rules rather than duplicated.
+# (category, sv, pos, en, note, ex, ex_en)
+NEGATION = [
+    ("Negation", "Aldrig", "Adverb", "Never",
+     "Takes the same sentence slot as 'inte'.",
+     "Jag har aldrig varit i Norge.", "I have never been to Norway."),
+    ("Negation", "Ingenting", "Pronoun", "Nothing",
+     "Interchangeable with 'inget' as an object: 'Jag ser ingenting/inget'.",
+     "Jag hörde ingenting.", "I heard nothing."),
+    ("Negation", "Ingenstans", "Adverb", "Nowhere",
+     "Direction: 'ingenstans' also covers 'to nowhere'.",
+     "Jag hittar nycklarna ingenstans.", "I can't find the keys anywhere."),
+    ("Negation", "Ingen annan", "Phrase", "Nobody else",
+     "Neuter: inget annat • Plural: inga andra",
+     "Ingen annan visste om det.", "Nobody else knew about it."),
+    ("Negation", "Jo", "Interjection", "Yes (contradicting a negative)",
+     "Swedish has two words for yes: 'ja' answers a positive question, 'jo' "
+     "contradicts a negative one. Answering 'ja' there sounds wrong.",
+     "Du gillar inte fisk, va? — Jo, det gör jag!",
+     "You don't like fish, do you? — Yes, I do!"),
+    ("Negation", "Inte alls", "Phrase", "Not at all", None,
+     "Det gör inte alls ont.", "It doesn't hurt at all."),
+    ("Negation", "Inte längre", "Phrase", "Not any more", None,
+     "Jag bor inte längre i Malmö.", "I don't live in Malmö any more."),
+    ("Negation", "Inte än", "Phrase", "Not yet",
+     "Also 'ännu inte', which is a touch more formal.",
+     "Har du ätit? — Inte än.", "Have you eaten? — Not yet."),
+    ("Negation", "Inte heller", "Phrase", "Neither / not either",
+     "Answers someone else's negative statement.",
+     "Jag har inte sett filmen. — Inte jag heller.",
+     "I haven't seen the film. — Me neither."),
+    ("Negation", "Varken … eller", "Correlative construction", "Neither … nor",
+     "The construction is already negative — don't add 'inte' as well.",
+     "Jag vill varken ha te eller kaffe.", "I want neither tea nor coffee."),
+    ("Negation", "Knappast", "Adverb", "Hardly", None,
+     "Det är knappast värt det.", "It's hardly worth it."),
+    ("Negation", "Sällan", "Adverb", "Rarely / seldom", None,
+     "Vi ses sällan nuförtiden.", "We rarely see each other these days."),
+    ("Negation", "Ej", "Adverb", "Not (formal / written)",
+     "You meet this on signs and in official writing, not in speech.",
+     "Hissen är ej i bruk.", "The lift is out of order."),
+    ("Negation", "Slippa", "Verb", "To not have to / to be spared",
+     "Infinitive: slippa • Past: slapp • Supine: sluppit. A verb meaning the "
+     "absence of an obligation — English needs a whole phrase for it.",
+     "Jag slipper jobba i helgen.", "I don't have to work this weekend."),
+    ("Negation", "Det är inte lätt.", "Phrase", "It isn't easy.", None,
+     "Svenska är inte lätt, men det är kul.", "Swedish isn't easy, but it's fun."),
+    ("Negation", "Jag gillar inte det här.", "Phrase", "I don't like this.", None,
+     "Jag gillar inte det här, det är för salt.",
+     "I don't like this, it's too salty."),
+    ("Negation", "Jag vet inte.", "Phrase", "I don't know.", None,
+     "Jag vet inte var han bor.", "I don't know where he lives."),
+    ("Negation", "Jag har ingen aning.", "Phrase", "I have no idea.", None,
+     "Vad betyder det? — Jag har ingen aning.",
+     "What does that mean? — I have no idea."),
+    ("Negation", "Det går inte.", "Phrase", "It won't work / it's not possible.", None,
+     "Jag har försökt, men det går inte.", "I've tried, but it won't work."),
+    ("Negation", "Absolut inte", "Phrase", "Absolutely not", None,
+     "Vill du hoppa? — Absolut inte!", "Do you want to jump? — Absolutely not!"),
+    ("Negation", "Tyvärr inte", "Phrase", "Unfortunately not", None,
+     "Har du tid? — Tyvärr inte.", "Do you have time? — Unfortunately not."),
+    ("Negation", "Inte konstigt att …", "Phrase", "No wonder that…",
+     "Followed by subordinate word order.",
+     "Inte konstigt att du är trött!", "No wonder you're tired!"),
+]
+
+# The other half of what was missing: opposites. Thirteen pairs already existed
+# as unconnected entries; these fill in the halves that were absent so a pair
+# can actually be drilled as a pair.
+# (category, sv, pos, en, note, ex, ex_en)
+OPPOSITES_EXTRA = [
+    ("Core Words", "Ljus", "Adjective", "Light / bright",
+     "Neuter: ljust • Plural: ljusa",
+     "Rummet är ljust på morgonen.", "The room is bright in the morning."),
+    ("Core Words", "Glad", "Adjective", "Happy",
+     "Neuter: glatt • Plural: glada",
+     "Jag blir glad när du ringer.", "I'm happy when you call."),
+    ("Core Words", "Hel", "Adjective", "Whole / intact",
+     "Neuter: helt • Plural: hela",
+     "Är koppen hel?", "Is the cup intact?"),
+    ("Core Words", "Öppen", "Adjective", "Open",
+     "Neuter: öppet • Plural: öppna",
+     "Butiken är öppen till sex.", "The shop is open until six."),
+    ("Core Words", "Stängd", "Adjective", "Closed",
+     "Neuter: stängt • Plural: stängda",
+     "Banken är stängd på söndagar.", "The bank is closed on Sundays."),
+    ("Core Words", "Ren", "Adjective", "Clean",
+     "Neuter: rent • Plural: rena",
+     "Köket är rent nu.", "The kitchen is clean now."),
+    ("Core Words", "Smutsig", "Adjective", "Dirty",
+     "Neuter: smutsigt • Plural: smutsiga",
+     "Skorna är smutsiga.", "The shoes are dirty."),
+    ("Core Words", "Full", "Adjective", "Full",
+     "Neuter: fullt • Plural: fulla. Informally also 'drunk'.",
+     "Bussen är full.", "The bus is full."),
+    ("Core Words", "Tom", "Adjective", "Empty",
+     "Neuter: tomt • Plural: tomma",
+     "Flaskan är tom.", "The bottle is empty."),
+    ("Core Words", "Rik", "Adjective", "Rich",
+     "Neuter: rikt • Plural: rika",
+     "Landet är rikt på naturresurser.", "The country is rich in natural resources."),
+    ("Core Words", "Fattig", "Adjective", "Poor",
+     "Neuter: fattigt • Plural: fattiga",
+     "Familjen var fattig förr.", "The family used to be poor."),
+    ("Core Words", "Tidig", "Adjective", "Early",
+     "Neuter: tidigt • Plural: tidiga",
+     "Jag tog ett tidigt tåg.", "I took an early train."),
+    ("Core Words", "Sen", "Adjective", "Late",
+     "Neuter: sent • Plural: sena",
+     "Vi kom hem sent.", "We got home late."),
+    ("Core Words", "Alltid", "Adverb", "Always", None,
+     "Jag dricker alltid kaffe på morgonen.", "I always drink coffee in the morning."),
+    ("Core Words", "Någon", "Pronoun", "Someone / any",
+     "Neuter: något • Plural: några",
+     "Är det någon hemma?", "Is anyone home?"),
+    ("Core Words", "Lite", "Adverb", "A little / few", None,
+     "Jag talar lite svenska.", "I speak a little Swedish."),
+    ("Core Words", "Sist", "Adverb", "Last", None,
+     "Han kom sist i loppet.", "He came last in the race."),
+    ("Core Words", "Säljer", "Verb", "Selling/sells",
+     "Infinitive: sälja • Past: sålde • Supine: sålt",
+     "Vi ska sälja bilen.", "We're going to sell the car."),
+    ("Core Words", "Svarar", "Verb", "Answering/answers",
+     "Infinitive: svara • Past: svarade • Supine: svarat",
+     "Hon svarar aldrig i telefon.", "She never answers the phone."),
+]
+
+# Opposite pairs. Declared once; both directions and the shared "Opposites"
+# topic are derived, so a pair can never end up pointing only one way.
+ANTONYM_PAIRS = [
+    ("Stor", "Liten"), ("Varm", "Kall"), ("Bra", "Dålig"),
+    ("Snabb", "Långsam"), ("Lätt", "Svår"), ("Lång", "Kort"),
+    ("Stark", "Svag"), ("Rolig", "Tråkig"), ("Dyr", "Billig"),
+    ("Gammal", "Ny"), ("Nära", "Långt"), ("Med", "Utan"),
+    ("Före", "Efter"), ("Här", "Där"), ("Vänster", "Höger"),
+    ("Upp", "Ner"), ("Ja", "Nej"), ("Kommer", "Går"),
+    ("Mörk", "Ljus"), ("Ledsen", "Glad"), ("Trasig", "Hel"),
+    ("Först", "Sist"), ("Alltid", "Aldrig"), ("Någon", "Ingen"),
+    ("Mycket", "Lite"), ("Köper", "Säljer"), ("Frågar", "Svarar"),
+    ("Öppen", "Stängd"), ("Ren", "Smutsig"), ("Full", "Tom"),
+    ("Rik", "Fattig"), ("Tidig", "Sen"),
+]
+
+ANTONYMS = {}
+for _a, _b in ANTONYM_PAIRS:
+    ANTONYMS[_a] = _b
+    ANTONYMS[_b] = _a
+
+# Existing entries that belong in one of the new topics as well as their own.
+EXTRA_TOPICS = {
+    "Inte": ("Negation",),
+    "Ingen": ("Negation",),
+    "Utan": ("Negation",),
+    "BIFF-regeln": ("Negation",),
+    "Inte i huvudsats": ("Negation",),
+    "Aldrig": ("Negation",),
+}
+
 # Hand-written Tutor Toolkit: conversation-management phrases for keeping a
 # tutoring session in Swedish even when you need help. No analog in
 # the original CSV.
@@ -1085,6 +1247,8 @@ def _split_note(forms):
 # Each themed list is written for one section; a row's first field is its topic.
 GROUPED = [
     ("Grammar & reference", GRAMMAR_EXTRA),
+    ("Grammar & reference", NEGATION),
+    ("Topics & situations", OPPOSITES_EXTRA),
     ("Grammar & reference", QUESTIONS_PREPOSITIONS),
     ("Topics & situations", WORKPLACE_TECH_EXTRA),
     ("Topics & situations", HOME_DAILY_LIFE_EXTRA),
@@ -1097,7 +1261,17 @@ GROUPED = [
 NEW_TOPICS = {
     "Core Words": "Topics & situations",
     "Colors": "Topics & situations",
+    "Opposites": "Topics & situations",
 }
+
+
+def _augment(base_topics, sv):
+    """Add the topics a word earns by what it is, not by where it was written."""
+    topics = list(base_topics)
+    for extra in EXTRA_TOPICS.get(sv, ()):
+        if extra not in topics:
+            topics.append(extra)
+    return tuple(topics)
 
 
 def topic_sections():
@@ -1129,7 +1303,7 @@ def topic_sections():
 
 
 def _csv_rows():
-    """Migrate words/svenska.csv into (topics, sv, pos, en, note, ex, ex_en, fn) rows."""
+    """Migrate words/svenska.csv into (topics, sv, pos, en, note, ex, ex_en, fn, antonym) rows."""
     rows = []
     with CSV_PATH.open(encoding="utf-8") as f:
         for row in csv.DictReader(f):
@@ -1160,25 +1334,48 @@ def _csv_rows():
             else:
                 topics = (topic,)
 
-            rows.append((topics, sv, pos, en, note, ex, ex_en, None))
+            rows.append((_augment(topics, sv), sv, pos, en, note, ex, ex_en, None, None))
     return rows
 
 
 def seed_rows():
-    """Every row the seed inserts, as (topics, sv, pos, en, note, ex, ex_en, fn)."""
+    """Every row the seed inserts, as (topics, sv, pos, en, note, ex, ex_en, fn, antonym)."""
     rows = _csv_rows()
 
     for sv, pos, en, fn, note, ex, ex_en in V2_ANCHORS:
-        rows.append((("V2 Inversion Anchors",), sv, pos, en, note, ex, ex_en, fn))
+        rows.append((_augment(("V2 Inversion Anchors",), sv), sv, pos, en, note, ex, ex_en,
+                     fn, None))
 
     for sv, pos, en, note, ex, ex_en in COMPARISONS:
-        rows.append((("Comparatives & Comparisons",), sv, pos, en, note, ex, ex_en, None))
+        rows.append((_augment(("Comparatives & Comparisons",), sv), sv, pos, en, note, ex,
+                     ex_en, None, None))
 
     for _section, group in GROUPED:
         for topic, sv, pos, en, note, ex, ex_en in group:
-            rows.append(((topic,), sv, pos, en, note, ex, ex_en, None))
+            rows.append((_augment((topic,), sv), sv, pos, en, note, ex, ex_en, None, None))
 
-    return rows
+    return _link_opposites(rows)
+
+
+def _link_opposites(rows):
+    """Give each half of a pair its opposite, on exactly one row per word.
+
+    A few words are written twice — "Där" is vocabulary in Places & Directions
+    and again a fronting anchor in V2 Inversion Anchors. The meaning relation
+    belongs to the vocabulary entry, so the first row for a word wins and the
+    duplicate is left alone; otherwise Opposites would list the word twice.
+    """
+    linked = set()
+    out = []
+    for topics, sv, pos, en, note, ex, ex_en, fn, antonym in rows:
+        opposite = ANTONYMS.get(sv)
+        if opposite and sv not in linked:
+            linked.add(sv)
+            antonym = opposite
+            if "Opposites" not in topics:
+                topics = topics + ("Opposites",)
+        out.append((topics, sv, pos, en, note, ex, ex_en, fn, antonym))
+    return out
 
 
 def validate_rows(rows):
@@ -1191,8 +1388,23 @@ def validate_rows(rows):
         if section not in SECTIONS:
             problems.append(f"unknown section {section!r}")
 
-    for topics, sv, _pos, en, _note, ex, ex_en, _fn in rows:
+    # A word written twice (vocabulary entry plus V2 anchor) carries its
+    # opposite on only one of the rows; that is the one that counts here.
+    by_word = {}
+    for _t, sv, *_rest, antonym in rows:
+        if by_word.get(sv) is None:
+            by_word[sv] = antonym
+
+    for topics, sv, _pos, en, _note, ex, ex_en, _fn, antonym in rows:
         where = f"{'/'.join(topics)} / {sv}"
+
+        if antonym is not None:
+            if antonym not in by_word:
+                problems.append(f"{where}: opposite {antonym!r} is not an entry")
+            elif by_word[antonym] != sv:
+                problems.append(
+                    f"{where}: opposite {antonym!r} points back at {by_word[antonym]!r}"
+                )
 
         for label, value in (("translation", en), ("example", ex), ("example translation", ex_en)):
             if not (value or "").strip():
@@ -1223,8 +1435,9 @@ def seed_database(conn):
     for topic, section in topic_sections().items():
         register_topic(conn, topic, section)
 
-    for topics, sv, pos, en, note, ex, ex_en, fn in rows:
-        insert_entry(conn, topics, sv, pos, en, note, ex, ex_en, fn, is_custom=0)
+    for topics, sv, pos, en, note, ex, ex_en, fn, antonym in rows:
+        insert_entry(conn, topics, sv, pos, en, note, ex, ex_en, fn,
+                     antonym=antonym, is_custom=0)
 
 
 def ensure_seeded(conn):

@@ -52,6 +52,7 @@ Words live in `entries` (see `db.py`):
 | `note`      | Extra forms (definite/plural/tense, etc.)                             |
 | `ex`        | Example sentence in Swedish, shown as a copyable code block           |
 | `ex_en`     | English translation of the example sentence                           |
+| `antonym`   | The Swedish word meaning the reverse, if there is one. Reciprocal — validation rejects a pair that points only one way |
 | `fn`        | V2 inversion function group (`position-1` / `contrast` / `subordinating` / `modal`), only set on V2 anchor entries |
 | `is_custom` | `1` for entries you added yourself, `0` for seed data                 |
 | `mistake_count` | Times you've flagged this entry as "got it wrong" via Add Entry (0 by default; shown as a ⚠️ badge when > 0) |
@@ -153,6 +154,20 @@ A word can sit in **several topics at once**, which is what the old single
 `category` could never express: `äter` is core vocabulary *and* food vocabulary;
 `går` is core vocabulary *and* directions. It is listed under each, and a topic
 it also belongs to is shown in its caption.
+
+**Negation** and **Opposites** are the two topics that fill what the vocabulary
+was thinnest on. Negation covers *inte / aldrig / ingenting / ingenstans /
+varken … eller / inte alls / inte längre / inte än*, the everyday negative
+phrases (*det är inte lätt*, *jag gillar inte det här*, *jag har ingen aning*),
+the formal `ej` you meet on signs, the verb `slippa` (to not have to — English
+needs a whole phrase for it), and **`jo`**, the second word for "yes" that
+Swedish uses to contradict a negative question. The placement rules are
+cross-tagged in from Word Order Rules rather than duplicated.
+
+**Opposites** holds 32 reciprocal pairs. Thirteen already existed as
+unconnected entries; the rest were missing a half or missing entirely. Each word
+keeps its own subject topic as well — `dyr` is still in Shopping & Money — and
+shows its opposite on the card.
 
 **Core Words** is where the domain-neutral backbone lives — *vara, ha, göra, gå,
 komma, se, höra*, plus the general adjectives (*stor, liten, bra, gammal*).

@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS entries (
     note TEXT,
     ex TEXT,
     ex_en TEXT,
+    antonym TEXT,
     fn TEXT,
     is_custom INTEGER NOT NULL DEFAULT 0,
     mistake_count INTEGER NOT NULL DEFAULT 0
@@ -112,6 +113,7 @@ CREATE TABLE IF NOT EXISTS meta (
 ADDED_COLUMNS = {
     "mistake_count": "INTEGER NOT NULL DEFAULT 0",
     "ex_en": "TEXT",
+    "antonym": "TEXT",
 }
 
 
@@ -236,12 +238,15 @@ def register_topic(conn, topic, section):
     conn.commit()
 
 
-def insert_entry(conn, topics, sv, pos, en, note, ex, ex_en, fn, is_custom=0, mistake_count=0):
+def insert_entry(conn, topics, sv, pos, en, note, ex, ex_en, fn, antonym=None,
+                 is_custom=0, mistake_count=0):
     """Insert one entry and link it to every topic it belongs to."""
     cursor = conn.execute(
-        """INSERT INTO entries (sv, pos, word_class, en, note, ex, ex_en, fn, is_custom, mistake_count)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (sv, pos, word_class_for(pos), en, note, ex, ex_en, fn, int(is_custom), int(mistake_count)),
+        """INSERT INTO entries
+             (sv, pos, word_class, en, note, ex, ex_en, antonym, fn, is_custom, mistake_count)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (sv, pos, word_class_for(pos), en, note, ex, ex_en, antonym, fn,
+         int(is_custom), int(mistake_count)),
     )
     conn.executemany(
         "INSERT OR IGNORE INTO entry_topics (entry_id, topic) VALUES (?, ?)",
@@ -295,10 +300,10 @@ def fetch_entries(conn, topics=None, word_classes=None, search=None):
         like = f"%{search}%"
         query += (
             " AND (e.sv LIKE ? OR e.en LIKE ? OR e.note LIKE ?"
-            " OR e.ex LIKE ? OR e.ex_en LIKE ?"
+            " OR e.ex LIKE ? OR e.ex_en LIKE ? OR e.antonym LIKE ?"
             " OR e.id IN (SELECT entry_id FROM entry_topics WHERE topic LIKE ?))"
         )
-        params.extend([like] * 6)
+        params.extend([like] * 7)
 
     query += " ORDER BY e.sv"
     return _attach_topics(conn, conn.execute(query, params).fetchall())

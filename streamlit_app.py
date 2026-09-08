@@ -123,6 +123,8 @@ def render_entry(entry, hide_topic=None):
 
         if entry["note"]:
             st.caption(f"Forms: {entry['note']}")
+        if entry["antonym"]:
+            st.caption(f"↔ Motsats: **{entry['antonym']}**")
 
         if entry["ex"]:
             st.code(entry["ex"], language=None)
@@ -362,6 +364,8 @@ def reverse_drill_view():
             st.caption(" · ".join(meta))
             if current["note"]:
                 st.caption(f"Forms: {current['note']}")
+            if current["antonym"]:
+                st.caption(f"↔ Motsats: **{current['antonym']}**")
             if current["ex"]:
                 st.code(current["ex"], language=None)
             if current["ex_en"]:
@@ -413,6 +417,10 @@ def add_entry_view():
         en = st.text_input("English")
         pos = st.text_input("Part of speech", placeholder="Noun (en), Verb, Adjective…")
         note = st.text_input("Note (forms, etc.)")
+        antonym = st.text_input(
+            "Opposite (Swedish)", placeholder="liten",
+            help="The Swedish word that means the reverse, if there is one.",
+        )
         ex = st.text_area("Example sentence (Swedish)")
         ex_en = st.text_area("Example sentence (English)")
         fn = st.selectbox(
@@ -438,6 +446,7 @@ def add_entry_view():
                     ex or None,
                     ex_en or None,
                     fn or None,
+                    antonym=antonym or None,
                     is_custom=1,
                     mistake_count=1 if got_wrong else 0,
                 )
