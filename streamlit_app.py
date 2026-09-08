@@ -1,3 +1,4 @@
+import json
 import random
 
 import streamlit as st
@@ -8,18 +9,17 @@ from db import (
     WORD_CLASSES,
     fetch_entries,
     fetch_entries_by_id,
-    fetch_pinned,
     fetch_untriaged,
     get_connection,
     insert_entry,
     register_topic,
     search_entries,
     set_entry_topics,
-    set_pinned,
     topic_counts,
     word_class_counts,
 )
-from seed import ensure_seeded
+from seed import PINNED, ensure_seeded
+from state import open_state
 
 # The app is a retrieval layer, not a catalogue: the question it answers is
 # "what do I need to say right now?", asked mid-conversation with seconds to
@@ -64,7 +64,20 @@ def get_db():
     return conn
 
 
+@st.cache_resource
+def get_state():
+    """Personal state: favourites, today's session, what you keep missing.
+
+    Kept in its own store because content is disposable and this is not — a
+    deploy rebuilds all 604 entries but must not cost you your cheat sheet.
+    """
+    state = open_state()
+    state.prime_favorites(sorted(PINNED))
+    return state
+
+
 conn = get_db()
+state = get_state()
 
 
 # --- navigation state -------------------------------------------------------
@@ -115,13 +128,58 @@ def restore_from_url():
 # --- rendering --------------------------------------------------------------
 
 
-def toggle_pin(entry_id, pinned):
-    set_pinned(conn, entry_id, pinned)
+def entry_state(sv):
+    return st.session_state.entry_states.get(sv, {})
 
 
-def unpin_many(entry_ids):
-    for entry_id in entry_ids:
-        set_pinned(conn, entry_id, False)
+def is_favorite(sv):
+    return bool(entry_state(sv).get("favorite"))
+
+
+def in_session(sv):
+    return bool(entry_state(sv).get("session_selected"))
+
+
+def toggle_favorite(sv):
+    state.set_favorite(sv, not is_favorite(sv))
+    refresh_state()
+
+
+def toggle_session(sv):
+    state.set_session(sv, not in_session(sv))
+    refresh_state()
+
+
+def mark_used(sv):
+    state.record_use(sv)
+    refresh_state()
+
+
+def clear_session():
+    state.clear_session()
+    refresh_state()
+
+
+def refresh_state():
+    st.session_state.entry_states = state.all()
+
+
+def by_priority(entries):
+    """Most recently reached for first, then most used, then alphabetical."""
+    def key(entry):
+        row = entry_state(entry["sv"])
+        return (
+            row.get("last_used") is None,
+            _desc(row.get("last_used") or ""),
+            -(row.get("uses") or 0),
+            entry["sv"],
+        )
+    return sorted(entries, key=key)
+
+
+def _desc(text):
+    """Sort an ISO timestamp descending inside an ascending tuple sort."""
+    return tuple(-ord(c) for c in text)
 
 
 def render_entry(entry, hide_topic=None, key=None):
@@ -133,14 +191,22 @@ def render_entry(entry, hide_topic=None, key=None):
         if key is None:
             st.markdown(title)
         else:
-            head, star = st.columns([0.88, 0.12])
+            sv = entry["sv"]
+            head, star, plus = st.columns([0.76, 0.12, 0.12])
             head.markdown(title)
             star.button(
-                "★" if entry["pinned"] else "☆",
-                key=f"pin_{key}_{entry['id']}",
-                on_click=toggle_pin,
-                args=(entry["id"], not entry["pinned"]),
-                help="Remove from cheat sheet" if entry["pinned"] else "Add to cheat sheet",
+                "★" if is_favorite(sv) else "☆",
+                key=f"fav_{key}_{entry['id']}",
+                on_click=toggle_favorite,
+                args=(sv,),
+                help="Remove from favourites" if is_favorite(sv) else "Add to favourites",
+            )
+            plus.button(
+                "●" if in_session(sv) else "○",
+                key=f"ses_{key}_{entry['id']}",
+                on_click=toggle_session,
+                args=(sv,),
+                help="Drop from this lesson" if in_session(sv) else "Add to this lesson",
             )
 
         meta = []
@@ -165,9 +231,9 @@ def render_entry(entry, hide_topic=None, key=None):
         if entry["ex_en"]:
             st.caption(entry["ex_en"])
 
-        if entry["mistake_count"]:
-            times = "time" if entry["mistake_count"] == 1 else "times"
-            st.caption(f"⚠️ Missed {entry['mistake_count']} {times}")
+        missed = entry_state(entry["sv"]).get("mistake_count") or 0
+        if missed:
+            st.caption(f"⚠️ Missed {missed} time{'s' if missed != 1 else ''}")
 
 
 def button_grid(labels, counts, on_click, key_prefix):
@@ -293,47 +359,68 @@ def render_search(query, topics):
         render_entry(e, key="search")
 
 
-def render_compact(entry):
-    """One scannable line. The cheat sheet is read in seconds, not studied.
-
-    No per-row button: at phone width a column would stack under the text and
-    turn every entry into three lines. Unpinning lives in one control below.
+def render_compact(entry, key):
+    """One tappable row. Tapping means "I used this", which is what orders the
+    list next time — the only honest source of a priority signal.
     """
-    st.markdown(f"**{entry['sv']}** — {entry['en']}")
-    if entry["ex"]:
-        st.caption(entry["ex"])
+    st.button(
+        f"{entry['sv']} — {entry['en']}",
+        key=f"use_{key}_{entry['id']}",
+        use_container_width=True,
+        on_click=mark_used,
+        args=(entry["sv"],),
+        help=entry["ex"] or None,
+    )
 
 
-def render_cheat_sheet():
-    """What you actually reach for, first thing on the screen."""
-    pinned = fetch_pinned(conn)
-    st.subheader("My Cheat Sheet")
-    if not pinned:
-        st.info("Nothing pinned yet. Tap ☆ on any entry to keep it here.")
+def render_quick_list(entries, key):
+    for entry in by_priority(entries):
+        render_compact(entry, key)
+
+
+def render_session(all_entries):
+    """Today's lesson: what you put on the table before or during class."""
+    chosen = [e for e in all_entries if in_session(e["sv"])]
+    if not chosen:
         return
 
-    st.caption(f"{len(pinned)} pinned · tap ★ to drop one")
-    groups = {}
-    for entry in pinned:
-        groups.setdefault(primary_function(entry), []).append(entry)
+    head, clear = st.columns([0.72, 0.28])
+    head.subheader(f"This lesson · {len(chosen)}")
+    clear.button("Clear lesson", on_click=clear_session, use_container_width=True)
+    render_quick_list(chosen, "session")
+    st.divider()
 
-    for heading in sorted(groups):
-        st.markdown(f"**{heading}**")
-        for entry in groups[heading]:
-            render_compact(entry)
-        st.write("")
+
+def render_cheat_sheet(all_entries):
+    """What you actually reach for, first thing on the screen."""
+    favorites = [e for e in all_entries if is_favorite(e["sv"])]
+    st.subheader("My Cheat Sheet")
+    if not favorites:
+        st.info("Nothing here yet. Tap ☆ on any entry to keep it at hand.")
+        return
+
+    st.caption(
+        f"{len(favorites)} favourites · most recently used first · "
+        "tap one when you use it"
+    )
+    render_quick_list(favorites, "cheat")
 
     with st.expander("Edit cheat sheet"):
         drop = st.multiselect(
-            "Remove from the cheat sheet",
-            [e["sv"] for e in pinned],
-            key="unpin_pick",
+            "Remove from favourites",
+            sorted(e["sv"] for e in favorites),
+            key="unfav_pick",
             placeholder="Pick what you no longer need at hand",
         )
         if drop:
-            st.button("Remove", key="unpin_go", on_click=unpin_many,
-                      args=([e["id"] for e in pinned if e["sv"] in drop],))
+            st.button("Remove", key="unfav_go", on_click=unfavorite_many, args=(drop,))
         st.caption("Tap ☆ on any entry in search or Explore to add one.")
+
+
+def unfavorite_many(svs):
+    for sv in svs:
+        state.set_favorite(sv, False)
+    refresh_state()
 
 
 def primary_function(entry):
@@ -371,6 +458,31 @@ def file_entry(entry_id, topics):
     set_entry_topics(conn, entry_id, topics)
 
 
+def render_backup():
+    """State lives in a file the host will eventually delete. This is the way out."""
+    with st.expander("Backup & restore — a redeploy wipes your marks"):
+        st.caption(
+            "Favourites, lesson picks, use counts and miss counts. A few "
+            "hundred bytes; keep it anywhere."
+        )
+        st.download_button(
+            "Download my state",
+            data=state.export_state(),
+            file_name="svenska-state.json",
+            mime="application/json",
+            use_container_width=True,
+        )
+        restored = st.file_uploader("Restore from a backup", type="json")
+        if restored is not None:
+            try:
+                count = state.import_state(restored.getvalue())
+            except (ValueError, UnicodeDecodeError, json.JSONDecodeError) as error:
+                st.error(str(error))
+            else:
+                refresh_state()
+                st.success(f"Restored {count} expressions. Merged, nothing dropped.")
+
+
 def render_explore(topics):
     """The taxonomy, one click down from the things you reach for."""
     with st.expander(f"Explore all {len(topics)} topics"):
@@ -386,6 +498,8 @@ def render_explore(topics):
 def home_view():
     topics = all_topics()
     restore_from_url()
+    if "entry_states" not in st.session_state:
+        refresh_state()
 
     query = st.text_input(
         "Search",
@@ -407,10 +521,13 @@ def home_view():
         render_word_class(word_class)
         return
 
+    all_entries = fetch_entries(conn)
     render_inbox(topics)
-    render_cheat_sheet()
+    render_session(all_entries)
+    render_cheat_sheet(all_entries)
     st.divider()
     render_explore(topics)
+    render_backup()
 
 
 def improv_weave_view():
@@ -441,8 +558,11 @@ def improv_weave_view():
 def reverse_drill_view():
     st.write(
         "English shown first — say the Swedish aloud, then reveal to check "
-        "yourself. Active recall beats passive browsing."
+        "yourself. Marking each card is what feeds the ⚠️ counts and the "
+        "ordering on your cheat sheet."
     )
+    if "entry_states" not in st.session_state:
+        refresh_state()
 
     topics = all_topics()
     col1, col2 = st.columns(2)
@@ -496,11 +616,33 @@ def reverse_drill_view():
             if current["ex_en"]:
                 st.caption(current["ex_en"])
 
+    if st.session_state.reverse_revealed:
+        got, missed = st.columns(2)
+        got.button("✓ Got it", key="drill_got", use_container_width=True,
+                   on_click=drill_answer, args=(current["sv"], True))
+        missed.button("✗ Missed it", key="drill_missed", use_container_width=True,
+                      on_click=drill_answer, args=(current["sv"], False))
+
     if st.button("Next card ➡️"):
-        remaining = pool_ids - {current["id"]} or pool_ids
-        st.session_state.reverse_entry_id = random.choice(list(remaining))
-        st.session_state.reverse_revealed = False
+        next_card(pool_ids, current["id"])
         st.rerun()
+
+
+def next_card(pool_ids, current_id):
+    remaining = pool_ids - {current_id} or pool_ids
+    st.session_state.reverse_entry_id = random.choice(list(remaining))
+    st.session_state.reverse_revealed = False
+
+
+def drill_answer(sv, correct):
+    """The event source the states were missing: an actual answer."""
+    if correct:
+        state.record_success(sv)
+    else:
+        state.record_mistake(sv)
+    refresh_state()
+    st.session_state.reverse_revealed = False
+    st.session_state.reverse_entry_id = None
 
 
 def add_entry_view():
@@ -534,7 +676,7 @@ def add_entry_view():
                 "V2 function group (only relevant for V2 Inversion Anchors)",
                 ["", "position-1", "contrast", "subordinating", "modal"],
             )
-        pinned = st.checkbox("Pin to my cheat sheet")
+        favorite = st.checkbox("Add to my cheat sheet")
         got_wrong = st.checkbox("I got this wrong (mark for review)")
         submitted = st.form_submit_button("Add entry")
 
@@ -553,10 +695,13 @@ def add_entry_view():
                     ex_en or None,
                     fn or None,
                     antonym=antonym or None,
-                    pinned=1 if pinned else 0,
                     is_custom=1,
-                    mistake_count=1 if got_wrong else 0,
                 )
+                if favorite:
+                    state.set_favorite(sv, True)
+                if got_wrong:
+                    state.record_mistake(sv)
+                refresh_state()
                 where = ", ".join(chosen) if chosen else "the Inbox"
                 st.session_state.add_flash = f"Added “{sv}” → “{en}” to {where}."
                 st.rerun()

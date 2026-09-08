@@ -12,8 +12,8 @@ translation of that example — enforced by seed validation, not by convention.
 
 - **[Streamlit](https://streamlit.io/)** — the entire UI (Python, no separate
   frontend build).
-- **SQLite** — single-file database (`words/svenska.db`), accessed directly
-  via the stdlib `sqlite3` module (no ORM).
+- **SQLite** — two single-file databases via the stdlib `sqlite3` module (no
+  ORM): `words/svenska.db` for content, `words/state.db` for your own marks.
 - **Docker Compose** — optional containerized run.
 
 ## Folder structure
@@ -21,7 +21,8 @@ translation of that example — enforced by seed validation, not by convention.
 ```
 .
 ├── streamlit_app.py     # Streamlit UI: two-axis index + Improv Weave / Reverse Drill / Add Entry
-├── db.py                # SQLite connection, schema, query helpers
+├── db.py                # SQLite connection, schema, query helpers (content)
+├── state.py             # Your favourites, lesson picks, use and miss counts
 ├── seed.py              # One-time seed: migrates words/svenska.csv + hand-written content
 ├── requirements.txt     # Python dependencies (Streamlit)
 ├── .streamlit/
@@ -32,7 +33,8 @@ translation of that example — enforced by seed validation, not by convention.
 ├── .gitignore
 └── words/
     ├── svenska.csv       # Base seed vocabulary incl. example sentences (source of truth for migration)
-    └── svenska.db        # SQLite database (git-ignored; generated on first run)
+    ├── svenska.db        # Content database (git-ignored; rebuilt from seed.py)
+    └── state.db          # Your personal state (git-ignored; back it up, see below)
 ```
 
 `svenska.csv` columns: `#`, `Category`, `Word Type`, `Swedish`, `English`,
@@ -53,10 +55,9 @@ Words live in `entries` (see `db.py`):
 | `ex`        | Example sentence in Swedish, shown as a copyable code block           |
 | `ex_en`     | English translation of the example sentence                           |
 | `antonym`   | The Swedish word meaning the reverse, if there is one. Reciprocal — validation rejects a pair that points only one way |
-| `pinned`    | `1` if it sits on the cheat sheet. Hand-picked starter set; you add and drop from the UI |
+| `pinned`    | The seed's **curated starter set**, read once to prime an empty `state.db`. What you actually keep at hand is personal state, not content |
 | `fn`        | V2 inversion function group (`position-1` / `contrast` / `subordinating` / `modal`), only set on V2 anchor entries |
 | `is_custom` | `1` for entries you added yourself, `0` for seed data                 |
-| `mistake_count` | Times you've flagged this entry as "got it wrong" via Add Entry (0 by default; shown as a ⚠️ badge when > 0) |
 
 Two more tables carry the topic axis:
 
@@ -129,6 +130,33 @@ Open **http://localhost:8501**.
 
 ## Features
 
+### Content and state are separate on purpose
+
+`words/svenska.db` is **content**: 604 entries generated from `seed.py`, thrown
+away and rebuilt whenever the vocabulary changes. `words/state.db` is **yours**:
+
+| Column | Meaning |
+|--------|---------|
+| `sv` | The expression, as the key |
+| `favorite` | On your cheat sheet |
+| `session_selected` | On the table for today's lesson |
+| `mistake_count` | Times you missed it in the drill; comes back down when you get it right |
+| `uses` | Times you tapped it because you reached for it |
+| `last_used` | When that last happened — the primary sort on the home screen |
+
+**State is keyed on the Swedish text, not on `entries.id`.** Ids are not stable:
+a reseed deletes and re-inserts every seed row and AUTOINCREMENT hands out fresh
+numbers — `Alltså` was 387 before one and 991 after. State keyed on the id would
+silently reattach itself to different words.
+
+There is no hosted database and no login. A shared table with no owner would let
+anyone who opens the app's URL read and overwrite your cheat sheet, and fixing
+that properly costs an auth system this app has no use for. Instead the state
+file is small enough to carry by hand: **Backup & restore** on the home screen
+downloads it as a few hundred bytes of JSON and merges it back afterwards.
+Merges, never replaces — restoring an old backup will not drop what you have
+marked since. Do it before a redeploy, because the host will delete the file.
+
 ### The home: cheat sheet and search
 
 The first screen is **My Cheat Sheet** — the couple of dozen expressions you
@@ -144,10 +172,16 @@ phone mid-conversation. All terms must match, and results are ranked so the
 word you typed beats a word that merely mentions it: Swedish prefix, then
 Swedish substring, then English, then a hit in the notes or examples.
 
-The starter cheat sheet is hand-picked because on day one there is no usage
-data to rank by. `mistake_count` exists but nothing yet increments it — a
-practice feedback loop, and states derived from it, are deliberately left for
-a later pass rather than shipped inert.
+Above the cheat sheet sits **This lesson** — expressions you put on the table
+before or during a class, cleared with one button when it's over.
+
+Both lists are ordered by **most recently used, then most used**. Tapping a row
+*is* the use signal: you tapped it because you reached for it. That is the only
+honest source of a priority ranking, and it is also what finally feeds
+`mistake_count` — Reverse Drill now has **✓ Got it / ✗ Missed it**, so the miss
+counter goes up when you fumble and back down when you don't. The starter cheat
+sheet is still hand-picked, because on day one there is nothing to rank by; it
+stops being hand-picked the moment you start using it.
 
 ### Capture without friction
 

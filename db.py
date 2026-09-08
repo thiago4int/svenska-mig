@@ -92,10 +92,9 @@ CREATE TABLE IF NOT EXISTS entries (
     ex TEXT,
     ex_en TEXT,
     antonym TEXT,
-    pinned INTEGER NOT NULL DEFAULT 0,
+    pinned INTEGER NOT NULL DEFAULT 0,   -- seed's curated starter set only
     fn TEXT,
-    is_custom INTEGER NOT NULL DEFAULT 0,
-    mistake_count INTEGER NOT NULL DEFAULT 0
+    is_custom INTEGER NOT NULL DEFAULT 0
 );
 
 -- A topic belongs to exactly one section: the primary key makes it impossible
@@ -119,8 +118,9 @@ CREATE TABLE IF NOT EXISTS meta (
 );
 """
 
+# How often you miss a word is a fact about you, so it lives in state.py, not
+# here. Older databases keep a `mistake_count` column; nothing reads it.
 ADDED_COLUMNS = {
-    "mistake_count": "INTEGER NOT NULL DEFAULT 0",
     "ex_en": "TEXT",
     "antonym": "TEXT",
     "pinned": "INTEGER NOT NULL DEFAULT 0",
@@ -257,7 +257,7 @@ def register_topic(conn, topic, section):
 
 
 def insert_entry(conn, topics, sv, pos, en, note, ex, ex_en, fn, antonym=None,
-                 pinned=0, is_custom=0, mistake_count=0):
+                 pinned=0, is_custom=0):
     """Insert one entry and link it to every topic it belongs to.
 
     `topics` may be empty: an entry captured mid-conversation lands untriaged
@@ -265,11 +265,10 @@ def insert_entry(conn, topics, sv, pos, en, note, ex, ex_en, fn, antonym=None,
     """
     cursor = conn.execute(
         """INSERT INTO entries
-             (sv, pos, word_class, en, note, ex, ex_en, antonym, fn, pinned,
-              is_custom, mistake_count)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+             (sv, pos, word_class, en, note, ex, ex_en, antonym, fn, pinned, is_custom)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (sv, pos, word_class_for(pos), en, note, ex, ex_en, antonym, fn, int(pinned),
-         int(is_custom), int(mistake_count)),
+         int(is_custom)),
     )
     conn.executemany(
         "INSERT OR IGNORE INTO entry_topics (entry_id, topic) VALUES (?, ?)",
@@ -411,17 +410,6 @@ def fetch_untriaged(conn):
         "ORDER BY id DESC"
     ).fetchall()
     return _attach_topics(conn, rows)
-
-
-def fetch_pinned(conn):
-    """The cheat sheet: what you reach for most, in a stable order."""
-    rows = conn.execute("SELECT * FROM entries WHERE pinned = 1 ORDER BY sv").fetchall()
-    return _attach_topics(conn, rows)
-
-
-def set_pinned(conn, entry_id, pinned):
-    conn.execute("UPDATE entries SET pinned = ? WHERE id = ?", (int(pinned), entry_id))
-    conn.commit()
 
 
 def set_entry_topics(conn, entry_id, topics):

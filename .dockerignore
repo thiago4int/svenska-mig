@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 .git/
 words/svenska.db
+words/state.db

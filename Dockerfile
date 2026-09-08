@@ -5,7 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY streamlit_app.py db.py seed.py ./
+COPY streamlit_app.py db.py seed.py state.py ./
 COPY .streamlit ./.streamlit
 COPY words ./words
 
