@@ -3,9 +3,17 @@ from pathlib import Path
 
 DB_PATH = Path(__file__).parent / "words" / "svenska.db"
 
-# The three sections a topic can belong to. They answer "why am I looking at
-# this?" — a property of the topic, never of a word.
-SECTIONS = ["Topics & situations", "Grammar & reference", "Conversation toolkit"]
+# The three groupings a topic can belong to. The split that matters mid-
+# conversation is semantic vs communicative: "Food & Drink" is a subject you
+# talk *about*, "Clarification" is a job you need done *now*. Reference is the
+# grammar you look up rather than reach for.
+SECTIONS = ["Subjects", "Functions", "Reference"]
+
+LEGACY_SECTIONS = {
+    "Topics & situations": "Subjects",
+    "Conversation toolkit": "Functions",
+    "Grammar & reference": "Reference",
+}
 
 # The second axis. `pos` keeps the detail that matters when you use a word
 # (en/ett gender, which preposition a verb takes); `word_class` is the coarse
@@ -84,6 +92,7 @@ CREATE TABLE IF NOT EXISTS entries (
     ex TEXT,
     ex_en TEXT,
     antonym TEXT,
+    pinned INTEGER NOT NULL DEFAULT 0,
     fn TEXT,
     is_custom INTEGER NOT NULL DEFAULT 0,
     mistake_count INTEGER NOT NULL DEFAULT 0
@@ -114,6 +123,7 @@ ADDED_COLUMNS = {
     "mistake_count": "INTEGER NOT NULL DEFAULT 0",
     "ex_en": "TEXT",
     "antonym": "TEXT",
+    "pinned": "INTEGER NOT NULL DEFAULT 0",
 }
 
 
@@ -180,9 +190,17 @@ def _migrate_category_to_topics(conn):
     conn.commit()
 
 
+def _migrate_section_values(conn):
+    """Rename the old section values onto Subjects / Functions / Reference."""
+    for old, new in LEGACY_SECTIONS.items():
+        conn.execute("UPDATE topics SET section = ? WHERE section = ?", (new, old))
+    conn.commit()
+
+
 def _migrate(conn):
     _migrate_tab_to_section(conn)
     _migrate_category_to_topics(conn)
+    _migrate_section_values(conn)
     columns = _columns(conn)
     for column, definition in ADDED_COLUMNS.items():
         if column not in columns:
@@ -239,13 +257,18 @@ def register_topic(conn, topic, section):
 
 
 def insert_entry(conn, topics, sv, pos, en, note, ex, ex_en, fn, antonym=None,
-                 is_custom=0, mistake_count=0):
-    """Insert one entry and link it to every topic it belongs to."""
+                 pinned=0, is_custom=0, mistake_count=0):
+    """Insert one entry and link it to every topic it belongs to.
+
+    `topics` may be empty: an entry captured mid-conversation lands untriaged
+    and is filed later.
+    """
     cursor = conn.execute(
         """INSERT INTO entries
-             (sv, pos, word_class, en, note, ex, ex_en, antonym, fn, is_custom, mistake_count)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (sv, pos, word_class_for(pos), en, note, ex, ex_en, antonym, fn,
+             (sv, pos, word_class, en, note, ex, ex_en, antonym, fn, pinned,
+              is_custom, mistake_count)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (sv, pos, word_class_for(pos), en, note, ex, ex_en, antonym, fn, int(pinned),
          int(is_custom), int(mistake_count)),
     )
     conn.executemany(
@@ -277,7 +300,7 @@ def _attach_topics(conn, rows):
     return entries
 
 
-def fetch_entries(conn, topics=None, word_classes=None, search=None):
+def fetch_entries(conn, topics=None, word_classes=None):
     query = "SELECT DISTINCT e.* FROM entries e"
     params = []
 
@@ -295,15 +318,6 @@ def fetch_entries(conn, topics=None, word_classes=None, search=None):
         placeholders = ",".join("?" for _ in word_classes)
         query += f" AND e.word_class IN ({placeholders})"
         params.extend(word_classes)
-
-    if search:
-        like = f"%{search}%"
-        query += (
-            " AND (e.sv LIKE ? OR e.en LIKE ? OR e.note LIKE ?"
-            " OR e.ex LIKE ? OR e.ex_en LIKE ? OR e.antonym LIKE ?"
-            " OR e.id IN (SELECT entry_id FROM entry_topics WHERE topic LIKE ?))"
-        )
-        params.extend([like] * 7)
 
     query += " ORDER BY e.sv"
     return _attach_topics(conn, conn.execute(query, params).fetchall())
@@ -331,3 +345,90 @@ def word_class_counts(conn):
     return conn.execute(
         "SELECT word_class, COUNT(*) AS n FROM entries GROUP BY word_class ORDER BY n DESC"
     ).fetchall()
+
+
+# --- search -----------------------------------------------------------------
+
+# Swedish folds so a keyboard-lazy query still finds the word: "halsa" should
+# reach "hälsa", "oppen" should reach "öppen".
+_FOLD = str.maketrans({
+    "å": "a", "ä": "a", "ö": "o", "é": "e", "è": "e", "ü": "u", "á": "a", "à": "a",
+    "Å": "a", "Ä": "a", "Ö": "o", "É": "e", "È": "e", "Ü": "u", "Á": "a", "À": "a",
+})
+
+
+def fold(text):
+    """Lowercase and strip the accents that make a query miss."""
+    return (text or "").lower().translate(_FOLD)
+
+
+def _haystack(entry):
+    parts = [entry["sv"], entry["en"], entry["note"], entry["ex"], entry["ex_en"],
+             entry["antonym"], entry["pos"], entry["word_class"]]
+    parts.extend(entry["topics"])
+    return fold(" ".join(p for p in parts if p))
+
+
+def search_entries(conn, query):
+    """Every entry matching all terms, best match first.
+
+    Ranked so the word you typed comes before a word that merely mentions it:
+    a Swedish prefix beats a Swedish substring beats an English match beats a
+    hit somewhere in the notes or examples.
+    """
+    terms = [t for t in fold(query).split() if t]
+    if not terms:
+        return []
+
+    results = []
+    for entry in fetch_entries(conn):
+        haystack = _haystack(entry)
+        if not all(term in haystack for term in terms):
+            continue
+
+        sv, en = fold(entry["sv"]), fold(entry["en"])
+        first = terms[0]
+        if sv.startswith(first):
+            rank = 0
+        elif first in sv:
+            rank = 1
+        elif en.startswith(first):
+            rank = 2
+        elif first in en:
+            rank = 3
+        else:
+            rank = 4
+        results.append((rank, len(entry["sv"]), entry["sv"], entry))
+
+    results.sort(key=lambda r: r[:3])
+    return [entry for *_rest, entry in results]
+
+
+def fetch_untriaged(conn):
+    """Entries captured without a topic — the Inbox."""
+    rows = conn.execute(
+        "SELECT * FROM entries WHERE id NOT IN (SELECT entry_id FROM entry_topics) "
+        "ORDER BY id DESC"
+    ).fetchall()
+    return _attach_topics(conn, rows)
+
+
+def fetch_pinned(conn):
+    """The cheat sheet: what you reach for most, in a stable order."""
+    rows = conn.execute("SELECT * FROM entries WHERE pinned = 1 ORDER BY sv").fetchall()
+    return _attach_topics(conn, rows)
+
+
+def set_pinned(conn, entry_id, pinned):
+    conn.execute("UPDATE entries SET pinned = ? WHERE id = ?", (int(pinned), entry_id))
+    conn.commit()
+
+
+def set_entry_topics(conn, entry_id, topics):
+    """Replace an entry's topics — used to file something out of the Inbox."""
+    conn.execute("DELETE FROM entry_topics WHERE entry_id = ?", (entry_id,))
+    conn.executemany(
+        "INSERT OR IGNORE INTO entry_topics (entry_id, topic) VALUES (?, ?)",
+        [(entry_id, t) for t in topics],
+    )
+    conn.commit()

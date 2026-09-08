@@ -1,9 +1,9 @@
 # Svenska 🇸🇪
 
-A personal Swedish vocabulary practice app: pick a topic off a single index,
-drill sentence starters that trigger V2 word-order inversion, look up the
-full question-word and preposition inventory, improvise mini-monologues from
-randomly woven vocabulary, and run active-recall drills against yourself.
+A personal Swedish **retrieval layer**, not a catalogue. The question it
+answers is "what do I need to say right now?", asked mid-conversation with
+seconds to spare — so the home is a pinned cheat sheet and a search box that
+forgives missing accents, and the taxonomy lives one click down under Explore.
 
 Every entry carries an English translation, a Swedish example sentence, and a
 translation of that example — enforced by seed validation, not by convention.
@@ -53,6 +53,7 @@ Words live in `entries` (see `db.py`):
 | `ex`        | Example sentence in Swedish, shown as a copyable code block           |
 | `ex_en`     | English translation of the example sentence                           |
 | `antonym`   | The Swedish word meaning the reverse, if there is one. Reciprocal — validation rejects a pair that points only one way |
+| `pinned`    | `1` if it sits on the cheat sheet. Hand-picked starter set; you add and drop from the UI |
 | `fn`        | V2 inversion function group (`position-1` / `contrast` / `subordinating` / `modal`), only set on V2 anchor entries |
 | `is_custom` | `1` for entries you added yourself, `0` for seed data                 |
 | `mistake_count` | Times you've flagged this entry as "got it wrong" via Add Entry (0 by default; shown as a ⚠️ badge when > 0) |
@@ -62,7 +63,7 @@ Two more tables carry the topic axis:
 | Table          | Meaning                                                          |
 |----------------|------------------------------------------------------------------|
 | `topics`       | `topic` → `section`. The primary key makes it impossible for one topic to sit under two headings |
-| `entry_topics` | `entry_id` → `topic`, many-to-many: **a word can belong to several topics.** `äter` is in Core Words *and* Food & Drink |
+| `entry_topics` | `entry_id` → `topic`, many-to-many: **a word can belong to several topics.** `äter` is in Core Words *and* Food & Drink. An entry with *no* row here is in the Inbox |
 
 **Every seed entry carries an English translation, a Swedish example sentence,
 and an English translation of that example.** `seed.validate_rows()` enforces
@@ -128,77 +129,91 @@ Open **http://localhost:8501**.
 
 ## Features
 
-### Navigation
+### The home: cheat sheet and search
+
+The first screen is **My Cheat Sheet** — the couple of dozen expressions you
+actually reach for — grouped by the *job* each one does (Clarification,
+Conversation Fillers, Sentence Patterns) rather than by subject. Entries render
+compactly, one scannable line each: this surface is read in seconds, not
+studied. Pin from any entry with ☆; drop from the "Edit cheat sheet" control.
+
+Above it sits a **global search** that runs across everything with nothing
+selected first. It folds accents and case, so `halsa` finds *hälsa*, `oppen`
+finds *öppen* and `alltsa` finds *alltså* — you will not be typing å/ä/ö on a
+phone mid-conversation. All terms must match, and results are ranked so the
+word you typed beats a word that merely mentions it: Swedish prefix, then
+Swedish substring, then English, then a hit in the notes or examples.
+
+The starter cheat sheet is hand-picked because on day one there is no usage
+data to rank by. `mistake_count` exists but nothing yet increments it — a
+practice feedback loop, and states derived from it, are deliberately left for
+a later pass rather than shipped inert.
+
+### Capture without friction
+
+Add Entry requires **Swedish and English only**. Everything else — topics, part
+of speech, examples, opposite — is optional and folded into an expander. Save
+with no topic and the entry lands in the **Inbox** on the home screen, where it
+can be filed later. The point is that catching a correction mid-session should
+never cost you a taxonomy decision.
+
+### Explore: the taxonomy, one click down
 
 Words are filed along **two independent axes**:
 
 | Axis | Question it answers | Examples |
 |------|---------------------|----------|
-| **topic** | What is it *about*? | Food & Drink, Travel & Transport, Workplace Basics |
+| **topic** | What is it *about*, or what does it *do*? | Food & Drink, Conversation Fillers, Sentence Patterns |
 | **word class** | What *kind* of word is it? | Verb, Noun, Adjective, Phrase |
 
 One field used to do both jobs, which is where `More Verbs`, `Everyday Verbs`,
 `More Adjectives`, `Colors & Adjectives` and `Tech Verbs` came from — a word
-class wearing a topic's clothes, and a name ("more" than what?) that only meant
-anything relative to the source spreadsheet's row order. All five are retired.
+class wearing a topic's clothes. All five are retired.
 
-Browse opens on an index you can enter from either end:
+Explore opens an index you can enter from either end: **by topic** (open one and
+its entries group by word class) or **by word class** (every verb in the app,
+grouped by topic).
 
-- **By topic** — every topic as a button with its count, grouped under the three
-  sections. Open one and its entries are grouped by word class, with pills to
-  narrow to just the verbs or just the nouns.
-- **By word class** — every word of one kind across the whole app, grouped by
-  topic. "Show me every verb I know" is one click.
+Topics are grouped by the distinction that matters mid-conversation:
 
-A word can sit in **several topics at once**, which is what the old single
-`category` could never express: `äter` is core vocabulary *and* food vocabulary;
-`går` is core vocabulary *and* directions. It is listed under each, and a topic
-it also belongs to is shown in its caption.
+- **Subjects** — things to talk about (Food & Drink, Travel & Transport, Work).
+- **Functions** — things to say and how to say them (Conversation Fillers,
+  Sentence Patterns, Clarification, Negation, Greetings, Opinions).
+- **Reference** — things to look up (prepositions, question words, word order).
 
-**Negation** and **Opposites** are the two topics that fill what the vocabulary
-was thinnest on. Negation covers *inte / aldrig / ingenting / ingenstans /
-varken … eller / inte alls / inte längre / inte än*, the everyday negative
-phrases (*det är inte lätt*, *jag gillar inte det här*, *jag har ingen aning*),
-the formal `ej` you meet on signs, the verb `slippa` (to not have to — English
-needs a whole phrase for it), and **`jo`**, the second word for "yes" that
-Swedish uses to contradict a negative question. The placement rules are
-cross-tagged in from Word Order Rules rather than duplicated.
+That split is the point: a semantic category and a communicative function are
+different questions, and several topics that read as subjects — Greetings,
+Invitations, Opinions, Everyday Expressions — are really functions and now sit
+with the others.
 
-**Opposites** holds 32 reciprocal pairs. Thirteen already existed as
-unconnected entries; the rest were missing a half or missing entirely. Each word
-keeps its own subject topic as well — `dyr` is still in Shopping & Money — and
-shows its opposite on the card.
+**Conversation Fillers** (*alltså, typ, ju, väl, liksom, jaha, förresten*) are
+the words that make speech sound like speech; exactly one of them existed
+before. **Sentence Patterns** are frames with a slot (*jag skulle vilja …, det
+beror på …, är det okej om jag …?*) — the productive half of speaking, since one
+frame carries whatever vocabulary you drop into it. Any entry containing `…` is
+tagged into Sentence Patterns automatically wherever it was written, which
+recovered 22 that were scattered across nine subject topics.
+
+A word can sit in **several topics at once**: `äter` is core vocabulary *and*
+food vocabulary; `går` is core vocabulary *and* directions.
 
 **Core Words** is where the domain-neutral backbone lives — *vara, ha, göra, gå,
-komma, se, höra*, plus the general adjectives (*stor, liten, bra, gammal*).
-These are not a subject and never were; forcing them into Work or Sport would
-have been worse than "More Verbs", not better. Words there still pick up a
-subject where one genuinely applies, which is why `äter` carries both.
+komma, se, höra*, plus the general adjectives. These are not a subject and never
+were.
 
-The index is grouped under three **sections**, which say why you'd be looking:
+**Negation** and **Opposites** fill what the vocabulary was thinnest on.
+Negation covers *inte / aldrig / ingenting / ingenstans / varken … eller*, the
+everyday negative phrases (*det är inte lätt*, *jag gillar inte det här*), the
+formal `ej` on signs, the verb `slippa`, and **`jo`** — the second word for
+"yes" that contradicts a negative question. Opposites holds 32 reciprocal
+pairs, shown on the card as `↔ Motsats`.
 
-- **Topics & situations** — things to talk about.
-- **Grammar & reference** — things to look up.
-- **Conversation toolkit** — things to say when you're stuck.
-
-A section belongs to the *topic*, not to a word, so the app never asks which
-section a word is in — the only time you choose one is when you invent a brand
-new topic. (The app used to have six "tabs" carried over from the source
-spreadsheet; a tab was not a property of a word, described nothing, and had to
-be guessed before you could reach a category. `db.py` migrates it away.)
-
-- **Search runs across everything** — no topic has to be chosen first. It
-  matches Swedish, English, topic name, notes, and example sentences in both
-  languages, and surfaces matching *topics* as jump buttons above the results.
 - **Topics and word classes are URL-addressable** — `?topic=Core+Words`,
   `?word_class=Verb`. Streamlit rewrites the URL in place rather than pushing
   history, so browser back does not step through them; use "← All topics".
-- **Add Entry is topic-first** — pick one *or several* topics and nothing else
-  is asked; the section comes with them. Type a topic that doesn't exist yet and
-  the app asks the one question it can't infer: which section it belongs in.
-- **Recent topics** appear as a row at the top of the index (per browser session).
-- The **V2 Inversion Anchors** topic is the one place grouped by something other
-  than word class: it groups by what triggers the inversion.
+- **Recent topics** appear at the top of the index (per browser session).
+- The **V2 Inversion Anchors** topic groups by what triggers the inversion
+  rather than by word class.
 
 ### Practice
 - **Improv Weave** — pulls a random 3–5 entries from across all topics for a

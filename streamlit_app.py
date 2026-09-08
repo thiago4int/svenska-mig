@@ -4,30 +4,40 @@ import streamlit as st
 
 from db import (
     SECTIONS,
+    fold,
     WORD_CLASSES,
     fetch_entries,
     fetch_entries_by_id,
+    fetch_pinned,
+    fetch_untriaged,
     get_connection,
     insert_entry,
     register_topic,
+    search_entries,
+    set_entry_topics,
+    set_pinned,
     topic_counts,
     word_class_counts,
 )
 from seed import ensure_seeded
 
-# Words are filed along two independent axes.
+# The app is a retrieval layer, not a catalogue: the question it answers is
+# "what do I need to say right now?", asked mid-conversation with seconds to
+# spare. So the home is the cheat sheet and the search box; the taxonomy is
+# real but it lives one click down, under Explore.
+#
+# Words are filed along two independent axes:
 #
 #   topic       what it is about  — Food & Drink, Travel & Transport, Work
 #   word_class  what kind of word — Verb, Noun, Adjective, Phrase
 #
-# One used to do both jobs, which is where "More Verbs" and "Colors &
-# Adjectives" came from: a word class wearing a topic's clothes. Now you can
-# enter from either end, and a word can sit in several topics at once — "äter"
-# is core vocabulary and food vocabulary, not one or the other.
+# and topics are grouped by whether they are a subject you talk about or a job
+# you need done (Functions), which is the distinction that matters when the
+# conversation is already moving.
 SECTION_BLURBS = {
-    "Topics & situations": "Things to talk about",
-    "Grammar & reference": "Things to look up",
-    "Conversation toolkit": "Things to say when you're stuck",
+    "Subjects": "Things to talk about",
+    "Functions": "Things to say, and how to say them",
+    "Reference": "Things to look up",
 }
 
 FN_LABELS = {
@@ -63,6 +73,9 @@ conn = get_db()
 def all_topics():
     """{topic: (section, count)}."""
     return {row["topic"]: (row["section"], row["n"]) for row in topic_counts(conn)}
+
+
+TOPIC_SECTIONS = {row["topic"]: row["section"] for row in topic_counts(conn)}
 
 
 def all_word_classes():
@@ -102,12 +115,33 @@ def restore_from_url():
 # --- rendering --------------------------------------------------------------
 
 
-def render_entry(entry, hide_topic=None):
+def toggle_pin(entry_id, pinned):
+    set_pinned(conn, entry_id, pinned)
+
+
+def unpin_many(entry_ids):
+    for entry_id in entry_ids:
+        set_pinned(conn, entry_id, False)
+
+
+def render_entry(entry, hide_topic=None, key=None):
     with st.container(border=True):
         title = f"**{entry['sv']}** — {entry['en']}"
         if entry["is_custom"]:
             title += " 🆕"
-        st.markdown(title)
+
+        if key is None:
+            st.markdown(title)
+        else:
+            head, star = st.columns([0.88, 0.12])
+            head.markdown(title)
+            star.button(
+                "★" if entry["pinned"] else "☆",
+                key=f"pin_{key}_{entry['id']}",
+                on_click=toggle_pin,
+                args=(entry["id"], not entry["pinned"]),
+                help="Remove from cheat sheet" if entry["pinned"] else "Add to cheat sheet",
+            )
 
         meta = []
         if entry["pos"]:
@@ -175,7 +209,7 @@ def render_word_class_index():
     button_grid([wc for wc, _n in pairs], counts, open_word_class, "wc")
 
 
-def render_grouped(entries, group_key, order=None, hide_topic=None):
+def render_grouped(entries, group_key, order=None, hide_topic=None, key_prefix=""):
     """Render entries under headings, in `order` where one is given."""
     groups = {}
     for e in entries:
@@ -185,11 +219,11 @@ def render_grouped(entries, group_key, order=None, hide_topic=None):
     keys += sorted(k for k in groups if k not in keys)
 
     single = len(keys) == 1
-    for key in keys:
+    for heading in keys:
         if not single:
-            st.subheader(f"{key} · {len(groups[key])}")
-        for e in groups[key]:
-            render_entry(e, hide_topic=hide_topic)
+            st.subheader(f"{heading} · {len(groups[heading])}")
+        for e in groups[heading]:
+            render_entry(e, hide_topic=hide_topic, key=f"{key_prefix}_{heading}")
 
 
 def render_topic(topic, topics):
@@ -214,10 +248,12 @@ def render_topic(topic, topics):
     # triggers the inversion, not the word class.
     if topic == ANCHOR_TOPIC:
         render_grouped(entries, lambda e: FN_LABELS.get(e["fn"], "Other"),
-                       order=[FN_LABELS[k] for k in FN_ORDER], hide_topic=topic)
+                       order=[FN_LABELS[k] for k in FN_ORDER], hide_topic=topic,
+                       key_prefix="topic")
         return
 
-    render_grouped(entries, lambda e: e["word_class"], order=WORD_CLASSES, hide_topic=topic)
+    render_grouped(entries, lambda e: e["word_class"], order=WORD_CLASSES,
+                   hide_topic=topic, key_prefix="topic")
 
 
 def render_word_class(word_class):
@@ -235,38 +271,130 @@ def render_word_class(word_class):
     for topic in sorted(groups):
         st.subheader(f"{topic} · {len(groups[topic])}")
         for e in groups[topic]:
-            render_entry(e, hide_topic=topic)
+            render_entry(e, hide_topic=topic, key=f"wc_{topic}")
 
 
-def render_search(search, topics):
+def render_search(query, topics):
     """Search runs across everything — nothing has to be chosen first."""
     counts = {name: n for name, (_s, n) in topics.items()}
-    matching = sorted(name for name in topics if search.lower() in name.lower())
+    matching = sorted(name for name in topics if fold(query) in fold(name))
     if matching:
-        st.caption("Matching topics")
+        st.caption("Jump to a topic")
         button_grid(matching, counts, open_topic, "found")
         st.divider()
 
-    entries = fetch_entries(conn, search=search)
+    entries = search_entries(conn, query)
     st.caption(f"{len(entries)} entr{'y' if len(entries) == 1 else 'ies'}")
     if not entries:
-        st.info("Nothing matches that search.")
+        st.info("Nothing matches that. Accents don't matter — 'halsa' finds 'hälsa'.")
         return
 
-    render_grouped(entries, lambda e: e["word_class"], order=WORD_CLASSES)
+    for e in entries:
+        render_entry(e, key="search")
 
 
-def browse_view():
+def render_compact(entry):
+    """One scannable line. The cheat sheet is read in seconds, not studied.
+
+    No per-row button: at phone width a column would stack under the text and
+    turn every entry into three lines. Unpinning lives in one control below.
+    """
+    st.markdown(f"**{entry['sv']}** — {entry['en']}")
+    if entry["ex"]:
+        st.caption(entry["ex"])
+
+
+def render_cheat_sheet():
+    """What you actually reach for, first thing on the screen."""
+    pinned = fetch_pinned(conn)
+    st.subheader("My Cheat Sheet")
+    if not pinned:
+        st.info("Nothing pinned yet. Tap ☆ on any entry to keep it here.")
+        return
+
+    st.caption(f"{len(pinned)} pinned · tap ★ to drop one")
+    groups = {}
+    for entry in pinned:
+        groups.setdefault(primary_function(entry), []).append(entry)
+
+    for heading in sorted(groups):
+        st.markdown(f"**{heading}**")
+        for entry in groups[heading]:
+            render_compact(entry)
+        st.write("")
+
+    with st.expander("Edit cheat sheet"):
+        drop = st.multiselect(
+            "Remove from the cheat sheet",
+            [e["sv"] for e in pinned],
+            key="unpin_pick",
+            placeholder="Pick what you no longer need at hand",
+        )
+        if drop:
+            st.button("Remove", key="unpin_go", on_click=unpin_many,
+                      args=([e["id"] for e in pinned if e["sv"] in drop],))
+        st.caption("Tap ☆ on any entry in search or Explore to add one.")
+
+
+def primary_function(entry):
+    """Group the cheat sheet by the job a phrase does, not by subject."""
+    for topic in entry["topics"]:
+        if TOPIC_SECTIONS.get(topic) == "Functions":
+            return topic
+    return entry["topics"][0] if entry["topics"] else "Unfiled"
+
+
+def render_inbox(topics):
+    """Anything captured without a topic, so a quick save is never lost."""
+    untriaged = fetch_untriaged(conn)
+    if not untriaged:
+        return
+
+    st.subheader(f"Inbox · {len(untriaged)}")
+    st.caption("Captured without a topic. File them when you have a moment.")
+    for entry in untriaged:
+        with st.container(border=True):
+            st.markdown(f"**{entry['sv']}** — {entry['en']}")
+            if entry["ex"]:
+                st.caption(entry["ex"])
+            chosen = st.multiselect(
+                "File under", sorted(topics), key=f"file_{entry['id']}",
+                placeholder="Pick one or more topics", label_visibility="collapsed",
+            )
+            if chosen:
+                st.button("File it", key=f"do_file_{entry['id']}",
+                          on_click=file_entry, args=(entry["id"], chosen))
+    st.divider()
+
+
+def file_entry(entry_id, topics):
+    set_entry_topics(conn, entry_id, topics)
+
+
+def render_explore(topics):
+    """The taxonomy, one click down from the things you reach for."""
+    with st.expander(f"Explore all {len(topics)} topics"):
+        axis = st.segmented_control(
+            "Browse", [BY_TOPIC, BY_WORD_CLASS], default=BY_TOPIC, key="axis"
+        )
+        if axis == BY_WORD_CLASS:
+            render_word_class_index()
+        else:
+            render_topic_index(topics)
+
+
+def home_view():
     topics = all_topics()
     restore_from_url()
 
-    search = st.text_input(
+    query = st.text_input(
         "Search",
-        placeholder="Search Swedish, English, topic, notes, examples…",
+        placeholder="Swedish, English, a topic… accents optional",
         key="search",
+        label_visibility="collapsed",
     )
-    if search:
-        render_search(search, topics)
+    if query:
+        render_search(query, topics)
         return
 
     topic = st.session_state.topic
@@ -279,13 +407,10 @@ def browse_view():
         render_word_class(word_class)
         return
 
-    axis = st.segmented_control(
-        "Browse", [BY_TOPIC, BY_WORD_CLASS], default=BY_TOPIC, key="axis"
-    )
-    if axis == BY_WORD_CLASS:
-        render_word_class_index()
-    else:
-        render_topic_index(topics)
+    render_inbox(topics)
+    render_cheat_sheet()
+    st.divider()
+    render_explore(topics)
 
 
 def improv_weave_view():
@@ -384,58 +509,39 @@ def add_entry_view():
         st.success(flash)
 
     st.write(
-        "Add your own entry — during or right after a tutor session works "
-        "well, while the correction is still fresh. It's tagged 🆕 so it "
-        "stays distinguishable from the seed set."
+        "Catch it while it's fresh. **Swedish and English are all that's "
+        "required** — leave the rest blank and it lands in the Inbox on the "
+        "home screen, to be filed when you're not mid-conversation."
     )
 
     topics = all_topics()
 
-    # Outside the form, so a brand-new topic can reveal the one question that
-    # can't be inferred. Existing topics ask nothing further.
-    chosen = st.multiselect(
-        "Topics",
-        sorted(topics),
-        accept_new_options=True,
-        placeholder="Pick one or more topics, or type a new one",
-        key="add_topics",
-        help="A word can belong to several — core vocabulary that is also about food, say.",
-    )
-
-    new_topics = [t for t in chosen if t not in topics]
-    section = None
-    if new_topics:
-        section = st.radio(
-            f"{', '.join(repr(t) for t in new_topics)} — new. Where does it belong?",
-            SECTIONS,
-            captions=[SECTION_BLURBS[s] for s in SECTIONS],
-            key="add_section",
-        )
-
     with st.form("add_entry_form", clear_on_submit=True):
         sv = st.text_input("Swedish")
         en = st.text_input("English")
-        pos = st.text_input("Part of speech", placeholder="Noun (en), Verb, Adjective…")
-        note = st.text_input("Note (forms, etc.)")
-        antonym = st.text_input(
-            "Opposite (Swedish)", placeholder="liten",
-            help="The Swedish word that means the reverse, if there is one.",
+        chosen = st.multiselect(
+            "Topics (optional)",
+            sorted(topics),
+            placeholder="Leave empty to file later",
         )
-        ex = st.text_area("Example sentence (Swedish)")
-        ex_en = st.text_area("Example sentence (English)")
-        fn = st.selectbox(
-            "V2 function group (only relevant for V2 Inversion Anchors)",
-            ["", "position-1", "contrast", "subordinating", "modal"],
-        )
+        with st.expander("More detail (optional)"):
+            pos = st.text_input("Part of speech", placeholder="Noun (en), Verb, Adjective…")
+            note = st.text_input("Note (forms, etc.)")
+            antonym = st.text_input("Opposite (Swedish)", placeholder="liten")
+            ex = st.text_area("Example sentence (Swedish)")
+            ex_en = st.text_area("Example sentence (English)")
+            fn = st.selectbox(
+                "V2 function group (only relevant for V2 Inversion Anchors)",
+                ["", "position-1", "contrast", "subordinating", "modal"],
+            )
+        pinned = st.checkbox("Pin to my cheat sheet")
         got_wrong = st.checkbox("I got this wrong (mark for review)")
         submitted = st.form_submit_button("Add entry")
 
         if submitted:
-            if not chosen or not sv or not en:
-                st.error("At least one topic, Swedish, and English are required.")
+            if not sv or not en:
+                st.error("Swedish and English are required. Everything else can wait.")
             else:
-                for topic in new_topics:
-                    register_topic(conn, topic, section)
                 insert_entry(
                     conn,
                     chosen,
@@ -447,20 +553,22 @@ def add_entry_view():
                     ex_en or None,
                     fn or None,
                     antonym=antonym or None,
+                    pinned=1 if pinned else 0,
                     is_custom=1,
                     mistake_count=1 if got_wrong else 0,
                 )
-                st.session_state.add_flash = (
-                    f"Added “{sv}” → “{en}” to {', '.join(chosen)}."
-                )
+                where = ", ".join(chosen) if chosen else "the Inbox"
+                st.session_state.add_flash = f"Added “{sv}” → “{en}” to {where}."
                 st.rerun()
 
 
 st.title("🇸🇪 Svenska")
 
-browse, weave, reverse, add = st.tabs(["Browse", "Improv Weave", "Reverse Drill", "Add Entry"])
+browse, weave, reverse, add = st.tabs(
+    ["Cheat Sheet", "Improv Weave", "Reverse Drill", "Add Entry"]
+)
 with browse:
-    browse_view()
+    home_view()
 with weave:
     improv_weave_view()
 with reverse:

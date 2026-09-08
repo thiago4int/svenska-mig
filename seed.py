@@ -16,31 +16,31 @@ CSV_PATH = Path(__file__).parent / "words" / "svenska.csv"
 # Bumped whenever the seed content below changes. A deployed app compares this
 # against the value stored in the database and reseeds when they differ, so new
 # vocabulary shows up on deploy without anyone deleting svenska.db by hand.
-SEED_VERSION = "5"
+SEED_VERSION = "6"
 
 # Best-fit mapping from the old flashcard categories onto (section, topic).
 # A section is one of the three headings on the index — the only grouping above
 # the topic that the app has. "Weather, family & professions" is split by word
 # below since it straddles three different topics.
 CATEGORY_MAP = {
-    "Greetings and pleasantries": ("Topics & situations", "Greetings & Pleasantries"),
-    "People and pronouns": ("Grammar & reference", "Pronouns & People"),
-    "Everyday verbs": ("Topics & situations", "Everyday Verbs"),
-    "Food and drink": ("Topics & situations", "Food & Drink"),
-    "Time and days": ("Topics & situations", "Time & Days"),
-    "Numbers and counting": ("Topics & situations", "Numbers & Counting"),
-    "Places and directions": ("Topics & situations", "Places & Directions"),
-    "Colors and adjectives": ("Topics & situations", "Colors & Adjectives"),
-    "Question words & prepositions": ("Grammar & reference", "Question Words"),
-    "More adjectives": ("Topics & situations", "More Adjectives"),
-    "Nature and seasons": ("Topics & situations", "Nature & Seasons"),
-    "Feelings and emotions": ("Topics & situations", "Feelings & Emotions"),
-    "More verbs": ("Topics & situations", "More Verbs"),
-    "Conjunctions and connectors": ("Grammar & reference", "Conjunctions & Connectors"),
-    "Pronouns and articles": ("Grammar & reference", "Pronouns & Articles"),
-    "Health and body": ("Topics & situations", "Health & Body"),
-    "Home and objects": ("Topics & situations", "Home & Objects"),
-    "Adverbs and function words": ("Grammar & reference", "Adverbs & Function Words"),
+    "Greetings and pleasantries": ("Subjects", "Greetings & Pleasantries"),
+    "People and pronouns": ("Reference", "Pronouns & People"),
+    "Everyday verbs": ("Subjects", "Everyday Verbs"),
+    "Food and drink": ("Subjects", "Food & Drink"),
+    "Time and days": ("Subjects", "Time & Days"),
+    "Numbers and counting": ("Subjects", "Numbers & Counting"),
+    "Places and directions": ("Subjects", "Places & Directions"),
+    "Colors and adjectives": ("Subjects", "Colors & Adjectives"),
+    "Question words & prepositions": ("Reference", "Question Words"),
+    "More adjectives": ("Subjects", "More Adjectives"),
+    "Nature and seasons": ("Subjects", "Nature & Seasons"),
+    "Feelings and emotions": ("Subjects", "Feelings & Emotions"),
+    "More verbs": ("Subjects", "More Verbs"),
+    "Conjunctions and connectors": ("Reference", "Conjunctions & Connectors"),
+    "Pronouns and articles": ("Reference", "Pronouns & Articles"),
+    "Health and body": ("Subjects", "Health & Body"),
+    "Home and objects": ("Subjects", "Home & Objects"),
+    "Adverbs and function words": ("Reference", "Adverbs & Function Words"),
 }
 
 
@@ -1164,12 +1164,132 @@ for _a, _b in ANTONYM_PAIRS:
 
 # Existing entries that belong in one of the new topics as well as their own.
 EXTRA_TOPICS = {
+    "Precis!": ("Conversation Fillers",),
+    "Faktiskt": ("Conversation Fillers",),
+    "Kanske": ("Conversation Fillers",),
+    "Nog": ("Conversation Fillers",),
     "Inte": ("Negation",),
     "Ingen": ("Negation",),
     "Utan": ("Negation",),
     "BIFF-regeln": ("Negation",),
     "Inte i huvudsats": ("Negation",),
     "Aldrig": ("Negation",),
+}
+
+
+# The words that make speech sound like speech rather than like a textbook.
+# Only one of these ("faktiskt") existed before; they are the highest-value
+# thing missing for spontaneous conversation.
+# (category, sv, pos, en, note, ex, ex_en)
+CONVERSATION_FILLERS = [
+    ("Conversation Fillers", "Alltså", "Filler", "So / I mean / that is",
+     "Buys a moment and signals you are about to explain yourself.",
+     "Alltså, jag menar att det är svårt.", "I mean, what I'm saying is that it's difficult."),
+    ("Conversation Fillers", "Typ", "Filler", "Like / sort of",
+     "Extremely common in speech, roughly English 'like'. Keep it out of writing.",
+     "Det tog typ två timmar.", "It took like two hours."),
+    ("Conversation Fillers", "Ju", "Modal particle", "As you know / after all",
+     "Unstressed, never first in the clause. Marks something you assume the "
+     "listener already knows. English has no single word for it.",
+     "Du vet ju hur det är.", "You know how it is, after all."),
+    ("Conversation Fillers", "Väl", "Modal particle", "Surely / I assume",
+     "Turns a statement into a soft check: 'you agree, right?'",
+     "Det är väl bra?", "That's good, isn't it?"),
+    ("Conversation Fillers", "Liksom", "Filler", "Like / kind of",
+     "Close to 'typ', usually mid-sentence.",
+     "Det var liksom konstigt.", "It was kind of strange."),
+    ("Conversation Fillers", "Jaha", "Interjection", "I see / oh",
+     "Signals that you have taken in what was said.",
+     "Jaha, så du flyttade hit i somras?", "I see, so you moved here this summer?"),
+    ("Conversation Fillers", "Okej", "Interjection", "Okay", None,
+     "Okej, då kör vi.", "Okay, let's go."),
+    ("Conversation Fillers", "Just det", "Phrase", "That's right / oh yes", None,
+     "Just det, jag glömde nyckeln.", "Oh right, I forgot the key."),
+    ("Conversation Fillers", "Du vet", "Phrase", "You know", None,
+     "Det är, du vet, lite komplicerat.", "It's, you know, a bit complicated."),
+    ("Conversation Fillers", "Så där", "Phrase", "So-so / like that", None,
+     "Hur mår du? — Så där.", "How are you? — So-so."),
+    ("Conversation Fillers", "Hur som helst", "Phrase", "Anyway", None,
+     "Hur som helst, vi ses imorgon.", "Anyway, see you tomorrow."),
+    ("Conversation Fillers", "Förresten", "Adverb", "By the way", None,
+     "Förresten, har du hört nyheten?", "By the way, have you heard the news?"),
+    ("Conversation Fillers", "I alla fall", "Phrase", "Anyway / at any rate",
+     "Often contracted to 'iallafall' in casual writing.",
+     "Jag kommer i alla fall.", "I'm coming, at any rate."),
+    ("Conversation Fillers", "Nämligen", "Adverb", "You see / namely",
+     "Introduces the reason for what you just said.",
+     "Jag kan inte komma. Jag är nämligen sjuk.", "I can't come. I'm ill, you see."),
+    ("Conversation Fillers", "Ungefär", "Adverb", "About / approximately", None,
+     "Det kostar ungefär hundra kronor.", "It costs about a hundred kronor."),
+    ("Conversation Fillers", "Verkligen", "Adverb", "Really", None,
+     "Det var verkligen kul!", "That was really fun!"),
+    ("Conversation Fillers", "Absolut", "Adverb", "Absolutely", None,
+     "Absolut, det gör vi!", "Absolutely, let's do that!"),
+    ("Conversation Fillers", "Typ som", "Phrase", "Kind of like", None,
+     "Det smakar typ som lakrits.", "It tastes kind of like liquorice."),
+]
+
+# Frames with a slot. High-yield because one pattern carries any vocabulary you
+# drop into it — the productive half of speaking.
+# (category, sv, pos, en, note, ex, ex_en)
+SENTENCE_PATTERNS = [
+    ("Sentence Patterns", "Jag skulle vilja …", "Pattern", "I would like to …",
+     "Politer than 'jag vill'.",
+     "Jag skulle vilja boka ett bord.", "I would like to book a table."),
+    ("Sentence Patterns", "Det beror på …", "Pattern", "It depends on …", None,
+     "Det beror på hur mycket tid vi har.", "It depends on how much time we have."),
+    ("Sentence Patterns", "Jag håller på att …", "Pattern", "I'm in the middle of …",
+     "The Swedish way of saying an action is ongoing.",
+     "Jag håller på att laga mat.", "I'm in the middle of cooking."),
+    ("Sentence Patterns", "Det känns som att …", "Pattern", "It feels like …", None,
+     "Det känns som att det blir regn.", "It feels like it's going to rain."),
+    ("Sentence Patterns", "Det verkar som att …", "Pattern", "It seems that …", None,
+     "Det verkar som att tåget är försenat.", "It seems the train is delayed."),
+    ("Sentence Patterns", "Jag är inte säker på om …", "Pattern", "I'm not sure whether …", None,
+     "Jag är inte säker på om han kommer.", "I'm not sure whether he's coming."),
+    ("Sentence Patterns", "Jag vet inte om …", "Pattern", "I don't know whether …", None,
+     "Jag vet inte om det funkar.", "I don't know whether it works."),
+    ("Sentence Patterns", "Jag undrar om …", "Pattern", "I wonder whether …",
+     "Subordinate word order follows: subject before the verb.",
+     "Jag undrar om du kan hjälpa mig.", "I wonder whether you can help me."),
+    ("Sentence Patterns", "Skulle det gå att …?", "Pattern", "Would it be possible to …?", None,
+     "Skulle det gå att flytta mötet?", "Would it be possible to move the meeting?"),
+    ("Sentence Patterns", "Är det okej om jag …?", "Pattern", "Is it okay if I …?", None,
+     "Är det okej om jag ringer senare?", "Is it okay if I call later?"),
+    ("Sentence Patterns", "Har du möjlighet att …?", "Pattern", "Do you have a chance to …?", None,
+     "Har du möjlighet att titta på det idag?", "Do you have a chance to look at it today?"),
+    ("Sentence Patterns", "Vill du att jag …?", "Pattern", "Do you want me to …?",
+     "'Att jag' + verb, not an infinitive.",
+     "Vill du att jag hämtar dig?", "Do you want me to pick you up?"),
+    ("Sentence Patterns", "Jag har tänkt på att …", "Pattern", "I've been thinking about …", None,
+     "Jag har tänkt på att byta jobb.", "I've been thinking about changing jobs."),
+    ("Sentence Patterns", "Det som jag menar är att …", "Pattern", "What I mean is that …", None,
+     "Det som jag menar är att vi behöver mer tid.",
+     "What I mean is that we need more time."),
+    ("Sentence Patterns", "Om jag förstår rätt …", "Pattern", "If I understand correctly …", None,
+     "Om jag förstår rätt ska vi mötas klockan tre.",
+     "If I understand correctly we're meeting at three."),
+    ("Sentence Patterns", "Det är därför jag …", "Pattern", "That's why I …",
+     "Fronted 'det är därför' triggers inversion in the clause that follows.",
+     "Det är därför jag inte kom.", "That's why I didn't come."),
+    ("Sentence Patterns", "Det gör inget om …", "Pattern", "It doesn't matter if …", None,
+     "Det gör inget om du är sen.", "It doesn't matter if you're late."),
+    ("Sentence Patterns", "Å ena sidan … å andra sidan …", "Pattern",
+     "On one hand … on the other hand …", None,
+     "Å ena sidan är det dyrt, å andra sidan är det bekvämt.",
+     "On one hand it's expensive, on the other it's convenient."),
+]
+
+# The cheat sheet you land on: what you actually reach for mid-conversation.
+# Hand-picked because on day one there is no usage data to rank by.
+PINNED = {
+    "Alltså", "Typ", "Ju", "Precis!", "Hur som helst", "Jo",
+    "Jag tycker att …", "Jag tror att …", "Det beror på …", "Jag skulle vilja …",
+    "Jag vet inte om …", "Kan du …?",
+    "Kan du upprepa?", "Vad betyder det?", "Hur säger man det på svenska?",
+    "Jag hängde inte med.", "Får jag tänka lite?", "Kan du säga det långsammare?",
+    "Jag vet inte.", "Jag har ingen aning.", "Det är inte lätt.",
+    "Hur går det?", "Vi ses!", "Det är lugnt.",
 }
 
 # Hand-written Tutor Toolkit: conversation-management phrases for keeping a
@@ -1246,22 +1366,42 @@ def _split_note(forms):
 
 # Each themed list is written for one section; a row's first field is its topic.
 GROUPED = [
-    ("Grammar & reference", GRAMMAR_EXTRA),
-    ("Grammar & reference", NEGATION),
-    ("Topics & situations", OPPOSITES_EXTRA),
-    ("Grammar & reference", QUESTIONS_PREPOSITIONS),
-    ("Topics & situations", WORKPLACE_TECH_EXTRA),
-    ("Topics & situations", HOME_DAILY_LIFE_EXTRA),
-    ("Topics & situations", PLACES_DIRECTIONS_EXTRA),
-    ("Topics & situations", SOCIAL_SMALL_TALK_EXTRA),
-    ("Conversation toolkit", TUTOR_TOOLKIT),
+    ("Reference", GRAMMAR_EXTRA),
+    ("Functions", NEGATION),
+    ("Subjects", OPPOSITES_EXTRA),
+    ("Reference", QUESTIONS_PREPOSITIONS),
+    ("Functions", CONVERSATION_FILLERS),
+    ("Functions", SENTENCE_PATTERNS),
+    ("Subjects", WORKPLACE_TECH_EXTRA),
+    ("Subjects", HOME_DAILY_LIFE_EXTRA),
+    ("Subjects", PLACES_DIRECTIONS_EXTRA),
+    ("Subjects", SOCIAL_SMALL_TALK_EXTRA),
+    ("Functions", TUTOR_TOOLKIT),
 ]
 
 # Topics the retag introduces, which no list declares on its own.
 NEW_TOPICS = {
-    "Core Words": "Topics & situations",
-    "Colors": "Topics & situations",
-    "Opposites": "Topics & situations",
+    "Core Words": "Subjects",
+    "Colors": "Subjects",
+    "Opposites": "Subjects",
+}
+
+# Topics whose value is what they let you *do*, not what they are about. They
+# were grouped as subjects only because that is where the source spreadsheet
+# put them.
+FUNCTIONAL_TOPICS = {
+    "Conversation Fillers",
+    "Sentence Patterns",
+    "Greetings & Pleasantries",
+    "Invitations & Plans",
+    "Opinions & Reactions",
+    "Everyday Expressions",
+    "Negation",
+    "Question Patterns",
+    "Clarification",
+    "Meta-language",
+    "Polite Feedback",
+    "Repair & Save the Conversation",
 }
 
 
@@ -1271,6 +1411,10 @@ def _augment(base_topics, sv):
     for extra in EXTRA_TOPICS.get(sv, ()):
         if extra not in topics:
             topics.append(extra)
+    # A frame with a slot in it is a sentence pattern wherever it was written:
+    # "Enligt nyheterna…" was filed under News, but its value is the frame.
+    if "…" in sv and "Sentence Patterns" not in topics:
+        topics.append("Sentence Patterns")
     return tuple(topics)
 
 
@@ -1286,18 +1430,22 @@ def topic_sections():
         if topic not in RETIRED_BUCKETS:
             sections[topic] = section
     for topic in PREPOSITION_REHOME.values():
-        sections[topic] = "Grammar & reference"
+        sections[topic] = "Reference"
 
     # CSV rows that branch by word rather than by category.
-    sections["Professions"] = "Topics & situations"
-    sections["Family & Weather Chat"] = "Topics & situations"
+    sections["Professions"] = "Subjects"
+    sections["Family & Weather Chat"] = "Subjects"
 
-    sections["V2 Inversion Anchors"] = "Grammar & reference"
-    sections["Comparatives & Comparisons"] = "Grammar & reference"
+    sections["V2 Inversion Anchors"] = "Reference"
+    sections["Comparatives & Comparisons"] = "Reference"
 
     for section, group in GROUPED:
         for row in group:
             sections[row[0]] = section
+
+    for topic in FUNCTIONAL_TOPICS:
+        if topic in sections:
+            sections[topic] = "Functions"
 
     return sections
 
@@ -1424,6 +1572,10 @@ def validate_rows(rows):
                 problems.append(f"{where}: duplicated inside {topic!r}")
             seen_per_topic[topic].add(sv)
 
+    known_words = set(by_word)
+    for sv in sorted(PINNED - known_words):
+        problems.append(f"pinned {sv!r} is not an entry")
+
     if problems:
         raise ValueError("Seed data problems:\n  " + "\n  ".join(problems))
 
@@ -1437,7 +1589,7 @@ def seed_database(conn):
 
     for topics, sv, pos, en, note, ex, ex_en, fn, antonym in rows:
         insert_entry(conn, topics, sv, pos, en, note, ex, ex_en, fn,
-                     antonym=antonym, is_custom=0)
+                     antonym=antonym, pinned=1 if sv in PINNED else 0, is_custom=0)
 
 
 def ensure_seeded(conn):
